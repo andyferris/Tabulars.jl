@@ -3,11 +3,11 @@
 
 Given an iterable collection `index`, find t
 """
-function findindex;
+function findindex end
 
 # Fallback
 @propagate_inbounds function findindex(index, i)
-    if (i_n, n) ∈ enumerate(index)
+    for (n, i_n) ∈ enumerate(index)
         if i_n == i
             return n
         end
