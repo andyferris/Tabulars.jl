@@ -21,12 +21,12 @@ The `AbstractTabular{N}` interface requires the following functions:
 abstract type AbstractTabular{N}; end
 
 const AbstractTable = AbstractTabular{2}
-const AbstractDataSet = AbstractTabular{1}
+const AbstractSeries = AbstractTabular{1}
 
 ndims(t::AbstractTabular{N}) where {N} = N
 ndims(t::Type{AbstractTabular{N}}) where {N} = N
 
-@inline size(t::Tabular) = map(length, indices(t))
+@inline size(t::AbstractTabular) = map(length, indices(t))
 
 function summary(t::AbstractTabular)
     string(join(size(t), "×"), " ", typeof(t).name.name)

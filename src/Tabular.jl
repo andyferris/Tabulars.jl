@@ -12,12 +12,12 @@ struct Tabular{N, Index, Data}
     data::Data
 end
 
-Tabular{N}(index, data) = Tabular{N, typeof(index), typeof(data)}(index, data)
-Tabular{N}(pairs::Pair...) = Tabular{N}(map(first, pairs), map(last, pairs))
+Tabular{N}(index, data) where {N} = Tabular{N, typeof(index), typeof(data)}(index, data)
+Tabular{N}(pairs::Pair...) where {N} = Tabular{N}(map(first, pairs), map(last, pairs))
 
 # Aliases for common sizes
 const Table{Columns, Data} = Tabular{2, Columns, Data}
-const DataSet{Index, Data} = Tabular{1, Index, Data}
+const Series{Index, Data} = Tabular{1, Index, Data}
 
 # indices
 @inline indices(t::Tabular{0}) = ()
