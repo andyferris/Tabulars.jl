@@ -64,7 +64,9 @@ For clarity and simplicity we'll lay out some assumptions:
    indices can be acheived by concatenation or a "grouped" index.) These are not
    generically shaped "ragged" arrays.
  * Within each dimension each index is unique.
- * The indices are immutable. If you want to resize a container, add a row to
-   the table, or whatever, it will be idiomatic to construct a new object (in
-   the functional programming style). However, it generally will be allowed that
-   the elements may ben updated (e.g. with `setindex!`).
+ * For the moment at least, the indices are immutable. If you want to resize a
+   container, add a row to the table, or whatever, it will be idiomatic to
+   construct a new object (in the functional programming style). On the other
+   hand, it generally will be allowed that the elements may ben updated (e.g. 
+   with `setindex!`), though the assumption that this is possible will not be
+   baked in as it is in the `Base.AbstractArray` code.
