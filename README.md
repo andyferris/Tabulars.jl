@@ -67,6 +67,7 @@ For clarity and simplicity we'll lay out some assumptions:
  * For the moment at least, the indices are immutable. If you want to resize a
    container, add a row to the table, or whatever, it will be idiomatic to
    construct a new object (in the functional programming style). On the other
-   hand, it generally will be allowed that the elements may ben updated (e.g. 
+   hand, it generally will be allowed that the elements may ben updated (e.g.
    with `setindex!`), though the assumption that this is possible will not be
    baked in as it is in the `Base.AbstractArray` code.
+ * `N > 0` - we won't try to extend to the zero dimensional case (for the moment).

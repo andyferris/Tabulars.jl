@@ -1,4 +1,41 @@
 """
+    Tabular{N}
+
+`Tabular{N}`s are flexible, `N`-dimensional storage containers.
+
+Objects of this abstract type can be seen as an extension (or combination) of both
+`AbstractArray` and `Associative`. An `Tabular{N}` object behaves as a generic
+mapping from `N` indices to it's elements, stored in a "Cartesian".
+
+Unlike `AbstractArray`, no assumptions about the indices or element type is made - excepting
+that the indices for a given dimension must be unique, and amongst dimensions they are
+"Cartesian" (e.g. a 2D tabular object must be rectangular in shape, not a generally nested
+or ragged array).
+
+The `Tabular{N}` interface requires the following functions:
+
+ - `indices(tabular)` returns a length-`N` tuple of the indices for each dimension.
+ - `getindex(tabular, inds...)` fetches an element given the `N` indices.
+ - `setindex!(tabular, value, inds...)` sets an element to `value` given the `N` indices.
+"""
+abstract type Tabular{N}; end
+
+const Table = Tabular{2}
+const Series = Tabular{1}
+
+ndims(t::Tabular{N}) where {N} = N
+ndims(t::Type{Tabular{N}}) where {N} = N
+
+@inline size(t::Tabular) = map(length, indices(t))
+
+function summary(t::Tabular)
+    string(join(size(t), "×"), " ", typeof(t).name.name)
+end
+
+
+#=
+
+"""
     Tabular{N}(index, data)
     Tabular{N}(i1 => data1, i2 => data2, ...)
 
@@ -7,7 +44,7 @@ their associated indices.
 
 See `AbstractTabular`, `Table` and `DataSet`.
 """
-struct Tabular{N, Index, Data}
+struct Tabular{N, Index, Data} <: AbstractTabular{N}
     index::Index
     data::Data
 end
@@ -21,7 +58,7 @@ const Series{Index, Data} = Tabular{1, Index, Data}
 
 # indices
 @inline indices(t::Tabular{0}) = ()
-@inline indices(t::Tabular{1}) = (t.index)
+@inline indices(t::Tabular{1}) = (t.index,)
 @inline indices(t::Tabular) = (indices(t.data)..., t.index)
 
 # getindex
@@ -39,11 +76,13 @@ end
 # setindex!
 @inline setindex!(t::Tabular{0}, value) = t.data[] = value
 
-@propagate_inbounds function getindex(t::Tabular{1}, value, i)
+@propagate_inbounds function setindex!(t::Tabular{1}, value, i)
     t.data[findindex(t.index, i)] = value
 end
 
-@propagate_inbounds function getindex(t::Tabular{N}, value, inds::Vararg{Any, N}) where {N}
+@propagate_inbounds function setindex!(t::Tabular{N}, value, inds::Vararg{Any, N}) where {N}
     (other_inds, this_ind) = pop(inds)
     t.data[findindex(t.index, this_ind)][other_inds...] = value
 end
+
+=#

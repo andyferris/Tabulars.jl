@@ -10,3 +10,23 @@ final element of the collection and `all_but_last` is a collection containing th
 @inline _pop(out::Tuple{}) = error("Can't `pop` on an empty tuple")
 @inline _pop(out::Tuple, x) = (out, x)
 @inline _pop(out::Tuple, x, y...) = _pop((out..., x), y...)
+
+
+function same_indices(iter)
+    i1 = first(iter)
+    for i ∈ iter
+        if i1 != i
+            return false
+        end
+    end
+    return true
+
+    #= # Optimize
+    s = start(iter)
+    if done(iter, s)
+        return true
+    end
+    (i1, s) = next(iter, s)
+    ...
+    =#
+end
