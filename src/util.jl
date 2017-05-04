@@ -1,8 +1,8 @@
 
 """
-    pop(x)
+    pop(x::Tuple)
 
-For an `n`-element collection, returns a tuple `(all_but_last, last)` where `last` is the
+For an `n`-element tuple, returns a tuple `(all_but_last, last)` where `last` is the
 final element of the collection and `all_but_last` is a collection containing the first
 `n-1` elements.
 """
@@ -11,8 +11,18 @@ final element of the collection and `all_but_last` is a collection containing th
 @inline _pop(out::Tuple, x) = (out, x)
 @inline _pop(out::Tuple, x, y...) = _pop((out..., x), y...)
 
-@generated pop(x::Tuple, ::Type{Val{N}}) where {N}
+"""
+    pop(x::Tuple, Val{m})
+
+For an `n`-element tuple, returns a tuple `(all_but_last_m, last_m)` where `last_m` is
+the final `m` elements of the collection and `all_but_last_m` is a collection containing the
+first `n-m` elements.
+"""
+@generated function pop(x::Tuple, ::Type{Val{N}}) where {N}
     M = length(x.parameters)
+    @assert N::Int >= 0
+    @assert N <= M
+
     exprs1 = [:(x[$i]) for i = 1:(M-N)]
     exprs2 = [:(x[$i]) for i = (M-N+1):M]
     quote

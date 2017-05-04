@@ -25,23 +25,23 @@ ArrayTabular(a::AbstractArray{N}) where {N} = ArrayTabular{N}(a)
 ArrayTabular{N}(a::AbstractArray) where {N} = ArrayTabular{N, typeof(a)}(a)
 
 # Aliases for common shapes
-const ArrayTable{D <: Associative} = DictTabular{2, D}
-const ArraySeries{D <: Associative} = DictTabular{1, D}
+const ArrayTable{A <: AbstractArray} = ArrayTabular{2, A}
+const ArraySeries{A <: AbstractArray} = ArrayTabular{1, A}
 
 # non-nested
 const FlatArrayTabular{N, A <: AbstractArray{N}} = ArrayTabular{N, A}
 
-@inline indices(t::FlatArrayTabular) = indices(t)
-@inline indices(t::ArrayTabular) = (indices(t)..., indices(first(t))...)
+@inline indices(t::FlatArrayTabular) = indices(t.array)
+@inline indices(t::ArrayTabular) = (indices(t.array)..., indices(first(t.array))...)
 
 # getindex
 @propagate_inbounds function getindex(t::FlatArrayTabular{N}, inds::Vararg{Integer, N}) where {N}
     t.array[inds...]
 end
 
-@propagate_inbounds function getindex(t::ArrayTabular{N}, inds::Vararg{Any, N}) where {N, M}
-    (other_inds, these_inds) = pop(inds, Val{N})
-    t[these_inds...][other_inds...]
+@propagate_inbounds function getindex(t::ArrayTabular{N}, inds::Vararg{Any, M}) where {N, M}
+    (other_inds, these_inds) = pop(inds, Val{ndims(t.array)})
+    t.array[these_inds...][other_inds...]
 end
 
 # setindex!
@@ -49,7 +49,7 @@ end
     t.array[inds...] = value
 end
 
-@propagate_inbounds function setindex!(t::ArrayTabular{N}, value, inds::Vararg{Any, N}) where {N, M}
-    (other_inds, these_inds) = pop(inds, Val{N})
+@propagate_inbounds function setindex!(t::ArrayTabular{N}, value, inds::Vararg{Any, M}) where {N, M}
+    (other_inds, these_inds) = pop(inds, Val{ndims(t.array)})
     t.array[these_inds...][other_inds...] = value
 end
