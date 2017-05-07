@@ -32,7 +32,7 @@ const ArraySeries{A <: AbstractArray} = ArrayTabular{1, A}
 const FlatArrayTabular{N, A <: AbstractArray{N}} = ArrayTabular{N, A}
 
 @inline indices(t::FlatArrayTabular) = indices(t.array)
-@inline indices(t::ArrayTabular) = (indices(t.array)..., indices(first(t.array))...)
+@inline indices(t::ArrayTabular) = (indices(first(t.array))..., indices(t.array)...)
 
 # getindex
 @propagate_inbounds function getindex(t::FlatArrayTabular{N}, inds::Vararg{Integer, N}) where {N}

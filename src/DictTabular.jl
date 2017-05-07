@@ -26,7 +26,7 @@ const DictSeries{D <: Associative} = DictTabular{1, D}
 # TODO these KeyIterators don't support very robust `==` or anything... will be necessary
 #      for concatenation, etc...
 @inline indices(t::DictTabular{1}) = (keys(t.dict),)
-@inline indices(t::DictTabular) = (keys(t.dict), indices(first(values(t.dict)))...)
+@inline indices(t::DictTabular) = (indices(first(values(t.dict)))..., keys(t.dict))
 
 # getindex
 @propagate_inbounds function getindex(t::DictTabular{1}, i)
