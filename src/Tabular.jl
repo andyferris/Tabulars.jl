@@ -32,6 +32,15 @@ function summary(t::Tabular)
     string(join(size(t), "×"), " ", typeof(t).name.name)
 end
 
+"""
+    TabularIndex
+
+An abstract type that represents a collection of indices of a tabular object.
+Each subtype of `Tabular` may define a corresponding `TabularIndex`, which will
+be used internally to construct new tabular objects during indexing and other
+operations.
+"""
+abstract type TabularIndex; end
 
 #=
 

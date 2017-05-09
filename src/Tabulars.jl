@@ -4,6 +4,8 @@ import Base: @pure, @propagate_inbounds, @_pure_meta, @_inline_meta, @_propagate
     getindex, setindex!, indices, size, tail, summary, show, length, start, next, done,
     transpose, permutedims, ndims, show
 
+import Base: ==
+
 #export AbstractTabular, AbstractTable, AbstractDataSet
 export Tabular, Table, Series
 export DictTabular, DictTable, DictSeries
@@ -21,7 +23,7 @@ include("TupleTabular.jl")
 include("PermutedDimsTabular.jl")
 
 include("Label.jl")
-
+include("constructors.jl")
 
 #include("AbstractTabular.jl")
 #include("findindex.jl")

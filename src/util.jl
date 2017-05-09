@@ -49,3 +49,18 @@ function same_indices(iter)
     ...
     =#
 end
+
+@generated function _map(f, x::Tuple)
+    exprs = [:(f(x[$i])) for i = 1:length(x.parameters)]
+    return quote
+        @_inline_meta
+        tuple($(exprs...))
+    end
+end
+
+@pure issingleton(::Type{T}) where {T} = (length(T.types) == 0 && !T.mutable)
+@inline issingleton(x) = issingleton(typeof(x))
+
+@inline aresingleton(x::Tuple) = _aresingleton(x...)
+@inline _aresingleton(x, y...) = issingleton(x) && _aresingleton(y...)
+@inline _aresingleton(x) = issingleton(x)

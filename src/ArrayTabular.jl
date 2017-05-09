@@ -34,7 +34,7 @@ const FlatArrayTabular{N, A <: AbstractArray{N}} = ArrayTabular{N, A}
 @inline indices(t::FlatArrayTabular) = indices(t.array)
 @inline indices(t::ArrayTabular) = (indices(first(t.array))..., indices(t.array)...)
 
-# getindex
+# scalar getindex
 @propagate_inbounds function getindex(t::FlatArrayTabular{N}, inds::Vararg{Integer, N}) where {N}
     t.array[inds...]
 end
@@ -44,7 +44,7 @@ end
     t.array[these_inds...][other_inds...]
 end
 
-# setindex!
+# scalar setindex!
 @propagate_inbounds function setindex!(t::FlatArrayTabular{N}, value, inds::Vararg{Integer, N}) where {N}
     t.array[inds...] = value
 end
