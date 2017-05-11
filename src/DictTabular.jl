@@ -41,9 +41,11 @@ end
 # setindex!
 @propagate_inbounds function setindex!(t::DictTabular{1}, value, i)
     t.dict[i] = value
+    return t
 end
 
 @propagate_inbounds function setindex!(t::Tabular{N}, value, inds::Vararg{Any, N}) where {N}
     (other_inds, this_ind) = pop(inds)
     t.dict[this_ind][other_inds...] = value
+    return t
 end

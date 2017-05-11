@@ -47,9 +47,11 @@ end
 # setindex!
 @propagate_inbounds function setindex!(t::FlatArrayTabular{N}, value, inds::Vararg{Integer, N}) where {N}
     t.array[inds...] = value
+    return t
 end
 
 @propagate_inbounds function setindex!(t::ArrayTabular{N}, value, inds::Vararg{Any, M}) where {N, M}
     (other_inds, these_inds) = pop(inds, Val{ndims(t.array)})
     t.array[these_inds...][other_inds...] = value
+    return t
 end

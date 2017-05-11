@@ -50,15 +50,47 @@ end
     end
 end
 
-# getindex
+# scalar getindex
 @propagate_inbounds function getindex(t::TupleTabular{1}, i)
-    get_tuple_element(t.data, i)
+    return get_tuple_element(t.data, i)
 end
 
-@propagate_inbounds function getindex(t::TupleTabular{N}, inds::Vararg{Any, N}) where {N}
+@propagate_inbounds function getindex(t::TupleTabular, inds...)
     (other_inds, this_ind) = pop(inds)
-    get_tuple_element(t.data, this_ind)[other_inds...]
+    return get_tuple_element(t.data, this_ind)[other_inds...]
 end
+
+# slice getindex
+@propagate_inbounds function getindex(t::TupleTabular{1}, ::Colon)
+    return t
+end
+
+@propagate_inbounds function getindex(t::TupleTabular, ::Colon, other_inds...)
+    @propagate_inbounds function getter(x)
+        return x[other_inds...]
+    end
+    x = _map(getter, t.data)
+
+end
+
+# fancy getindex
+@propagate_inbounds function getindex(t::TupleTabular{1}, inds::Tuple)
+    @propagate_inbounds function fetcher(x)
+        return t[x]
+    end
+    return TupleSeries(_map(fetcher, inds))
+end
+
+@propagate_inbounds function getindex(t::TupleTabular, this_inds::Tuple, other_inds...)
+    @propagate_inbounds function getter(x)
+        return x[other_inds...]
+    end
+    @propagate_inbounds function fetcher(x)
+        return get_tuple_element(t.data, x)
+    end
+    return _map(getter, _map(fetcher, inds))
+end
+
 
 # setindex!
 @propagate_inbounds function setindex!(t::TupleTabular{1}, value, i)
@@ -68,4 +100,5 @@ end
 @propagate_inbounds function setindex!(t::TupleTabular{N}, value, inds::Vararg{Any, N}) where {N}
     (other_inds, this_ind) = pop(inds)
     t.dict[this_ind][other_inds...] = value
+    return t
 end

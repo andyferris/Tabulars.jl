@@ -53,9 +53,10 @@ end
 indices(t::PermutedDimsTabular{Perm}) where {Perm} = _permute(Val{Perm}, indices(t.t))
 
 @propagate_inbounds function getindex(t::PermutedDimsTabular{Perm, N}, inds::Vararg{Any, N}) where {Perm, N}
-    t.t[_permute(Val{Perm}, inds)...]
+    return t.t[_permute(Val{Perm}, inds)...]
 end
 
 @propagate_inbounds function setindex!(t::PermutedDimsTabular{Perm, N}, value, inds::Vararg{Any, N}) where {Perm, N}
     t.t[_permute(Val{Perm}, inds)...] = value
+    return t
 end

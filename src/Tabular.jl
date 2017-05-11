@@ -32,6 +32,10 @@ function summary(t::Tabular)
     string(join(size(t), "×"), " ", typeof(t).name.name)
 end
 
+@pure add_dims(::Type{<:AbstractArray{N}}, i::Int) where {N} = N + i
+@pure add_dims(::Type{<:Tabular{N}}, i::Int) where {N} = N + i
+@pure add_dims(::Type{<:Any}, i::Int) = i
+
 
 #=
 

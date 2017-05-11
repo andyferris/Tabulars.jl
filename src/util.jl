@@ -49,3 +49,12 @@ function same_indices(iter)
     ...
     =#
 end
+
+# for some reason map from base on tuples wasn't working?
+@generated function _map(f, x::Tuple)
+    exprs = [:(f(x[$i])) for i = 1:length(x.parameters)]
+    quote
+        @_inline_meta
+        tuple($(exprs...))
+    end
+end
