@@ -24,6 +24,7 @@ include("PermutedDimsTabular.jl")
 
 include("Label.jl")
 include("constructors.jl")
+include("generic.jl")
 
 #include("AbstractTabular.jl")
 #include("findindex.jl")

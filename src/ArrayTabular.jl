@@ -37,21 +37,26 @@ const FlatArrayTabular{N, A <: AbstractArray{N}} = ArrayTabular{N, A}
 @inline indices(t::ArrayTabular) = (indices(first(t.array))..., indices(t.array)...)
 
 # Series - scalar or not
-@propagate_inbounds function getindex(t::ArraySeries{AbstractVector}, i::Integer)
+@propagate_inbounds function getindex(t::ArraySeries{<:AbstractVector}, i::Integer)
     t.array[i]
 end
 
-@propagate_inbounds function getindex(t::ArraySeries{AbstractVector}, i::Union{Colon, AbstractVector{<:Integer}})
+@propagate_inbounds function getindex(t::ArraySeries{<:AbstractVector}, i::Union{Colon, AbstractVector{<:Integer}})
     ArraySeries(t.array[i])
 end
 
 # Table - scalar/non-scalar in several nested patterns
-@propagate_inbounds function getindex(t::ArrayTable{<:Any, <:AbstractVector}, i1::Integer, i2)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1::Integer, i2)
     t.array[i1][i2]
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:Any, <:AbstractVector}, i1::AbstractVector{<:Integer}, i2)
-    data = map(Indexer(i2), t.array[ind1])
+struct Indexer{I}
+    inds::I
+end
+@propagate_inbounds (i::Indexer)(x) = x[i.inds...]
+
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1::AbstractVector{<:Integer}, i2)
+    data = map(Indexer(i2), t.array[ind1]) # TODO map isn't propagate_inbounds... needs workaround
     if eltype(data) <: Series
         return ArrayTable(data)
     else
@@ -59,7 +64,7 @@ end
     end
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:Any, <:AbstractVector}, ::Colon, i2)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, ::Colon, i2)
     data = map(Indexer(i2), t.array)
     if eltype(data) <: Series
         return ArrayTable(data)
@@ -68,24 +73,23 @@ end
     end
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:Any, <:AbstractMatrix}, i1::Integer, i2::Integer)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Integer, i2::Integer)
     t.array[i1, i2]
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:Any, <:AbstractMatrix}, i1::Integer, i2::Union{AbstractVector{<:Integer},Colon})
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Integer, i2::Union{AbstractVector{<:Integer},Colon})
     ArraySeries(t.array[i1, i2])
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:Any, <:AbstractMatrix}, i1::Union{AbstractVector{<:Integer},Colon}, i2::Integer)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Union{AbstractVector{<:Integer},Colon}, i2::Integer)
     ArraySeries(t.array[i1, i2])
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:Any, <:AbstractMatrix}, i1::Union{AbstractVector{<:Integer},Colon}, i2::Union{AbstractVector{<:Integer},Colon})
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Union{AbstractVector{<:Integer},Colon}, i2::Union{AbstractVector{<:Integer},Colon})
     ArrayTable(t.array[i1, i2])
 end
 
-
-
+# TODO higher dimensions, or find some generic way of doing this.
 
 #=
 # Get a single element - this is the implementation of scalar indexing
