@@ -1,4 +1,4 @@
-function (==)(t1::AbstractTabular{N}, t2::AbstractTabular{N}) where {N}
+function (==)(t1::Tabular{N}, t2::Tabular{N}) where {N}
     if indices(t1) != indices(t2)
         return false
     end

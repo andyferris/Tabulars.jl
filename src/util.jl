@@ -64,3 +64,17 @@ end
 @inline aresingleton(x::Tuple) = _aresingleton(x...)
 @inline _aresingleton(x, y...) = issingleton(x) && _aresingleton(y...)
 @inline _aresingleton(x) = issingleton(x)
+
+@inline aretype(::Type{T}, x::Tuple) where {T} = _aretype(T, x...)
+@inline _aretype(::Type{T}, x, y...) where {T} = isa(x, T) && _aretype(T, y...)
+@inline _aretype(::Type{T}, x) where {T} = isa(x, T)
+
+_firsttype(::Type{Pair{A,B}}) where {A,B} = A
+_firsttype(::Pair{A,B}) where {A,B} = A
+_secondtype(::Type{Pair{A,B}}) where {A,B} = B
+_secondtype(::Pair{A,B}) where {A,B} = B
+
+@pure increment(i::Int) = i + 1
+@pure increment(i::Int, j::Int) = i + j
+@pure decrement(i::Int) = i - 1
+@pure decrement(i::Int, j::Int) = i - j

@@ -1,4 +1,15 @@
-@inline length(t::AbstractTabular) = prod(size(t))
+@inline length(t::Tabular) = prod(size(t))
+
+# Series
+start(s::Series) = start(indices(s)[1])
+next(s::Series, i) = next(indices(s)[1], i)
+done(s::Series, i) = done(indices(s)[1], i)
+
+# TODO Table
+
+# TODO arbitrary dimensions (like CartesianRange)
+
+#=
 
 struct Index{N, I <: NTuple{N, Any}}
     i::I
@@ -38,3 +49,4 @@ end
 end
 
 @inline done(t::AbstractTabular) = all(map(done, indices(t), it))
+=#

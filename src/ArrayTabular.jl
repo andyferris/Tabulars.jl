@@ -53,7 +53,7 @@ end
 struct Indexer{I}
     inds::I
 end
-@propagate_inbounds (i::Indexer)(x) = x[i.inds...]
+@propagate_inbounds (i::Indexer)(x) = x[i.inds]
 
 @propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1::AbstractVector{<:Integer}, i2)
     data = map(Indexer(i2), t.array[ind1]) # TODO map isn't propagate_inbounds... needs workaround

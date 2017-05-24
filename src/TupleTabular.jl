@@ -34,27 +34,76 @@ const TupleSeries{Data <: Tuple{Vararg{Pair}}} = TupleTabular{1, Data}
 @inline indices(t::TupleTabular) = (indices(t.data[1].second)..., first.(t.data))
 
 # Get the tuple element
-@inline get_tuple_element(data::Tuple{Vararg{Pair}}, i) = _get_tuple_element(i, data...)
-@inline function _get_tuple_element(i, d::Pair)
+@inline get_tuple_value(data::Tuple{Vararg{Pair}}, i) = _get_tuple_value(i, data...)
+@inline function _get_tuple_value(i, d::Pair)
     if i == d.first
         return d.second
     else
         error("Can't find index $i")
     end
 end
-@inline function _get_tuple_element(i, d::Pair, ds::Pair...)
+@inline function _get_tuple_value(i, d::Pair, ds::Pair...)
     if i == d.first
         return d.second
     else
-        return _get_tuple_element(i, ds...)
+        return _get_tuple_value(i, ds...)
+    end
+end
+
+# Get the tuple pair
+@inline get_tuple_pair(data::Tuple{Vararg{Pair}}, i) = _get_tuple_pair(i, data...)
+@inline function _get_tuple_pair(i, d::Pair)
+    if i == d.first
+        return d
+    else
+        error("Can't find index $i")
+    end
+end
+@inline function _get_tuple_pair(i, d::Pair, ds::Pair...)
+    if i == d.first
+        return d
+    else
+        return _get_tuple_pair(i, ds...)
     end
 end
 
 # getindex
-@propagate_inbounds function getindex(t::TupleTabular{1}, i)
-    get_tuple_element(t.data, i)
+@propagate_inbounds function getindex(t::TupleSeries, i)
+    get_tuple_value(t.data, i)
 end
 
+@propagate_inbounds function getindex(t::TupleSeries, ::Colon)
+    t
+end
+
+@propagate_inbounds function getindex(t::TupleSeries, inds::Tuple)
+    TupleSeries(_map(i -> get_tuple_pair(t.data, i), inds))
+end
+
+@propagate_inbounds function getindex(t::TupleTable, other_inds, i)
+    get_tuple_value(t.data, i)[other_inds]
+end
+
+@propagate_inbounds function getindex(t::TupleTable, other_inds, ::Colon)
+    data = _map(kv -> Pair(kv.first, kv.second[other_inds]), t.data)
+    if aretype(Series, _map(first, data))
+        TupleTable(data)
+    else
+        TupleSeries(data)
+    end
+end
+
+@propagate_inbounds function getindex(t::TupleTable, other_inds, this_inds::Tuple)
+    data = _map(i -> (kv = get_tuple_pair(t.data, i); Pair(kv.first, kv.second[other_inds])), this_inds)
+    if aretype(Series, _map(first, data))
+        TupleTable(data)
+    else
+        TupleSeries(data)
+    end
+end
+
+
+#=
 @propagate_inbounds function getindex(t::TupleTabular{N}, inds::Vararg{Any, N}) where {N}
     (other_inds, this_ind) = pop(inds)
     get_tuple_element(t.data, this_ind)[other_inds...]
@@ -69,3 +118,4 @@ end
     (other_inds, this_ind) = pop(inds)
     t.dict[this_ind][other_inds...] = value
 end
+=#
