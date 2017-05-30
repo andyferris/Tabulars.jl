@@ -38,7 +38,7 @@ function show_series(io::IO, s::ANY)
         print(io, "\n ")
         @inbounds ind_str = ind_strings[i]
         print(io, ind_str)
-        n_spaces = length(ind_str) - max_ind_len
+        n_spaces = max_ind_len - length(ind_str)
         if n_spaces > 0
             print(io, " " ^ n_spaces)
         end

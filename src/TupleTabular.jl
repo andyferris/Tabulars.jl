@@ -86,7 +86,7 @@ end
 
 @propagate_inbounds function getindex(t::TupleTable, other_inds, ::Colon)
     data = _map(kv -> Pair(kv.first, kv.second[other_inds]), t.data)
-    if aretype(Series, _map(first, data))
+    if aretype(Series, _map(last, data))
         TupleTable(data)
     else
         TupleSeries(data)
@@ -95,7 +95,7 @@ end
 
 @propagate_inbounds function getindex(t::TupleTable, other_inds, this_inds::Tuple)
     data = _map(i -> (kv = get_tuple_pair(t.data, i); Pair(kv.first, kv.second[other_inds])), this_inds)
-    if aretype(Series, _map(first, data))
+    if aretype(Series, _map(last, data))
         TupleTable(data)
     else
         TupleSeries(data)

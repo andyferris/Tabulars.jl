@@ -15,6 +15,8 @@ end
     return PermutedDimsTabular{Perm, N, typeof(t)}(t)
 end
 
+const TransposedTable{Tab <: Table} = PermutedDimsTabular{(2,1), 2, Tab}
+
 """
     permutedims(tabular::Tabular, Val{Perm})
 
@@ -52,8 +54,22 @@ end
 
 indices(t::PermutedDimsTabular{Perm}) where {Perm} = _permute(Val{Perm}, indices(t.t))
 
-@propagate_inbounds function getindex(t::PermutedDimsTabular{Perm, N}, inds::Vararg{Any, N}) where {Perm, N}
-    t.t[_permute(Val{Perm}, inds)...]
+
+@propagate_inbounds function getindex(t::PermutedDimsTabular{(1,), 1}, i)
+    t.t[i]
+end
+
+@propagate_inbounds function getindex(t::PermutedDimsTabular{(1, 2), 2}, i1, i2)
+    t.t[i1, i2]
+end
+
+@propagate_inbounds function getindex(t::TransposedTable, i1, i2)
+    x = t.t[i2, i1]
+    if x isa Table
+        return x.'
+    else
+        return x
+    end
 end
 
 @propagate_inbounds function setindex!(t::PermutedDimsTabular{Perm, N}, value, inds::Vararg{Any, N}) where {Perm, N}
