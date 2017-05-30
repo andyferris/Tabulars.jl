@@ -29,4 +29,6 @@ include("generic.jl")
 #include("AbstractTabular.jl")
 #include("findindex.jl")
 
+include("show.jl")
+
 end # module

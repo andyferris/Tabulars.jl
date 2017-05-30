@@ -11,7 +11,7 @@ elements (which are themselves `Tabular`).
 struct ArrayTabular{N, A <: AbstractArray} <: Tabular{N}
     array::A
 
-    function ArrayTabular{N, A}(a::A) where {N, A <: AbstractArray{N}}
+    function ArrayTabular{N, A}(a::A) where {N, A <: AbstractArray{<:Any, N}}
         new{N, A}(a)
     end
 
@@ -31,7 +31,7 @@ const ArrayTable{A <: AbstractArray} = ArrayTabular{2, A}
 const ArraySeries{A <: AbstractArray} = ArrayTabular{1, A}
 
 # non-nested
-const FlatArrayTabular{N, A <: AbstractArray{N}} = ArrayTabular{N, A}
+const FlatArrayTabular{N, A <: AbstractArray{<:Any, N}} = ArrayTabular{N, A}
 
 @inline indices(t::FlatArrayTabular) = indices(t.array)
 @inline indices(t::ArrayTabular) = (indices(first(t.array))..., indices(t.array)...)
