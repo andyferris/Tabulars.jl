@@ -87,3 +87,29 @@ end
         return DictSeries(dict)
     end
 end
+
+# ===========
+#  setindex!
+# ===========
+
+@propagate_inbounds function setindex!(s::DictSeries, v, i)
+    s.dict[v] = v
+end
+
+@propagate_inbounds function setindex!(t::DictTable{<:Associative{K}}, v, i1, i2::K) where {K}
+    t.dict[i2][i1] = v
+end
+
+@propagate_inbounds function setindex!(t::DictTable{<:Associative{K}}, v, i1, ::Colon) where {K}
+    # TODO Support v being table or series
+    for x ∈ values(s.dict)
+        x[i1] = v
+    end
+end
+
+@propagate_inbounds function setindex!(t::DictTable{<:Associative{K}}, v, i1, i2::AbstractVector{K}) where {K}
+    # TODO Support v being table or series
+    for k ∈ i2
+        s.dict[k][i1] = v
+    end
+end

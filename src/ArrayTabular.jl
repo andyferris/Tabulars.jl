@@ -36,6 +36,10 @@ const FlatArrayTabular{N, A <: AbstractArray{<:Any, N}} = ArrayTabular{N, A}
 @inline indices(t::FlatArrayTabular) = indices(t.array)
 @inline indices(t::ArrayTabular) = (indices(first(t.array))..., indices(t.array)...)
 
+# ==========
+#  getindex
+# ==========
+
 # Series - scalar or not
 @propagate_inbounds function getindex(t::ArraySeries{<:AbstractVector}, i::Integer)
     t.array[i]
@@ -91,26 +95,32 @@ end
 
 # TODO higher dimensions, or find some generic way of doing this.
 
-#=
-# Get a single element - this is the implementation of scalar indexing
-@propagate_inbounds function getindex(t::FlatArrayTabular{N}, inds::Vararg{Integer, N}) where {N}
-    t.array[inds...]
+# ===========
+#  setindex!
+# ===========
+@propagate_inbounds setindex!(s::ArraySeries, v, i) = s.array[i] = v
+
+@propagate_inbounds setindex!(s::ArrayTable{<:AbstractMatrix}, v, i1, i2) = s.array[i1, i2] = v
+
+@propagate_inbounds setindex!(s::ArrayTable{<:AbstractVector}, v, i1, i2::Integer) = s.array[i2][i1] = v
+
+@propagate_inbounds function setindex!(s::ArrayTable{<:AbstractVector}, v, i1, ::Colon)
+    # TODO this one doesn't completely support `v` being an array, or a tabular, or whatever...
+    # Array might be hard... I guess we need Table or Series
+    for i ∈ indices(s.array)
+        s.array[i][i1] = v
+    end
 end
 
-@propagate_inbounds function getindex(t::ArrayTabular{N}, inds::Vararg{Any, M}) where {N, M}
-    (other_inds, these_inds) = pop(inds, Val{ndims(t.array)})
-
-
-    t.array[these_inds...][other_inds...]
+@propagate_inbounds function setindex!(s::ArrayTable{<:AbstractVector}, v, i1, i2::AbstractVector{<:Integer})
+    # TODO this one doesn't completely support `v` being an array, or a tabular, or whatever...
+    for i ∈ i2
+        s.array[i2][i1] = v
+    end
 end
 
-# scalar setindex!
-@propagate_inbounds function setelement!(t::FlatArrayTabular{N}, value, inds::Vararg{Integer, N}) where {N}
-    t.array[inds...] = value
-end
+# ======
+#  view
+# ======
 
-@propagate_inbounds function setelement!(t::ArrayTabular{N}, value, inds::Vararg{Any, M}) where {N, M}
-    (other_inds, these_inds) = pop(inds, Val{ndims(t.array)})
-    t.array[these_inds...][other_inds...] = value
-end
-=#
+# TODO

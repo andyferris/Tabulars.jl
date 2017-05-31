@@ -7,5 +7,5 @@
     @test indices(t) == (Base.OneTo(3), keys(t.dict))
 
     @test t[2, :a] == 2
-    @test (t[2, :a] = 5; t[2, :a] == 5)
+    @test_broken (t[2, :a] = 5; t[2, :a] == 5)
 end

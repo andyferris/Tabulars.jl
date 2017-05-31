@@ -39,7 +39,7 @@ const TupleSeries{Data <: Tuple{Vararg{Pair}}} = TupleTabular{1, Data}
     if i == d.first
         return d.second
     else
-        error("Can't find index $i")
+        error("Can't find index $i") # TODO choose an exception type
     end
 end
 @inline function _get_tuple_value(i, d::Pair, ds::Pair...)
@@ -56,7 +56,7 @@ end
     if i == d.first
         return d
     else
-        error("Can't find index $i")
+        error("Can't find index $i") # TODO choose an exception type
     end
 end
 @inline function _get_tuple_pair(i, d::Pair, ds::Pair...)
@@ -102,6 +102,39 @@ end
     end
 end
 
+# ===========
+#  setindex!
+# ===========
+
+@propagate_inbounds function setindex!(s::TupleSeries, v, i)
+    error("Cannot perform `setindex!` on an immutable object") # TODO choose an exception type... though this matches inbuilt Julia behavior...
+end
+
+@propagate_inbounds function setindex!(t::TupleTable, v, i1, i2)
+    get_tuple_value(t.data, i2)[i1] = v
+end
+
+@propagate_inbounds function setindex!(t::TupleTable, v, i1, ::Colon)
+    # TODO support v being a table or series.
+    # TODO make faster for hetrogenously typed tuples.
+    for kv ∈ t.data
+        kv.second[i1] = v
+    end
+end
+
+@propagate_inbounds function setindex!(t::TupleTable, v, i1, i2::Tuple)
+    # TODO support v being a table or series.
+    # TODO make faster for hetrogenously typed tuples.
+    for i ∈ i2
+        get_tuple_value(t.data, i)[i1] = v
+    end
+end
+
+# ======
+#  view
+# ======
+
+# TODO
 
 #=
 @propagate_inbounds function getindex(t::TupleTabular{N}, inds::Vararg{Any, N}) where {N}

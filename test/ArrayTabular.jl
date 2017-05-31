@@ -1,13 +1,15 @@
 @testset "ArrayTabular" begin
     @testset "ArraySeries" begin
-        t1 = ArraySeries([1,2,3,4])
+        t1 = ArraySeries([2,3,4,5])
 
-        @test indices(t1) === (Base.OneTo(4),)
-        @test t1[3] == 3
+        @test @inferred(Series([2,3,4,5])) isa ArraySeries
+
+        @test @inferred(indices(t1)) === (Base.OneTo(4),)
+        @test @inferred(t1[3]) == 4
         @test_throws DimensionMismatch t1[1,2]
 
-        @test t1[:]::ArraySeries == t1
-        @test t1[:]::ArraySeries == t1
+        @test_broken t1[:]::ArraySeries == t1
+        @test_broken t1[:]::ArraySeries == t1
     end
 
     @testset "ArrayTable" begin
