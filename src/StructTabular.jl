@@ -8,10 +8,14 @@ indices(::StructSeries{T}) where T = (_fields(T),)
 
 # TODO what to do for primitive types?
 @pure function _fields(::Type{T}) where T
+    if !isleaftype(T)
+        error("Expected leaf type, got $T")
+    end
     out = map(Label, (fieldnames(T)...))
     if length(out) == 0
-        error("Attempted to create a Series from primitive type $T")
+        error("Attempted to create a Series from type $T which has no fields")
     end
+    return out
 end
 
 # getindex
