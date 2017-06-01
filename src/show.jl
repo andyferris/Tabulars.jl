@@ -4,21 +4,56 @@ function compact_string(x)
     return String(io.io)
 end
 
+function truncate_string(str, max_width)
+    string_width = strwidth(str)
+    if string_width <= max_width
+        return str
+    end
+
+    newstring = ""
+    string_width = 0
+    for grapheme ∈ graphemes(str)
+        grapheme_width = strwidth(grapheme)
+        if string_width + grapheme_width >= max_width
+            return newstring * "…"
+        end
+        newstring = newstring * grapheme
+        string_width += grapheme_width
+    end
+    # Shouldn't get here, given that strwidth(s) = reduce(charwidth, 0, s)
+end
+
+function balance_widths(width1::Int, width2::Int, max_width::Int, min_width::Int = 16)
+    @assert max_width >= 0
+    biggest_width = max(width1, width2)
+
+    while width1 + width2 > max_width
+        biggest_width -= 1
+        if biggest_width < min_width
+            break
+        end
+        width1 = min(biggest_width, width1)
+        width2 = min(biggest_width, width2)
+    end
+
+    return (width1, width2)
+end
+
 show(io::IO, ::MIME"text/plain", s::Series) = show_series(io, s)
 function show_series(io::IO, s::ANY)
     inds = collect(indices(s)[1])::Vector
-    len = length(inds)::Int
+    nrows = length(inds)::Int
 
-    if len == 0
+    if nrows == 0
         print(io, "0-element Series")
         return
     end
 
-    print(io, len, "-element Series:")
+    print(io, nrows, "-element Series:")
 
     max_show_rows = 5
 
-    if len <= max_show_rows
+    if nrows <= max_show_rows
         ind_strings = map(compact_string, inds)::Vector{String}
         val_strings = map(i -> compact_string(s[i]), inds)::Vector{String}
     else
@@ -26,10 +61,18 @@ function show_series(io::IO, s::ANY)
         val_strings = String[compact_string(s[inds[i]]) for i ∈ 1:max_show_rows]
     end
 
-    max_ind_len = maximum(length, ind_strings)
-    max_val_len = maximum(length, val_strings)
+    max_ind_len = maximum(strwidth, ind_strings)
+    max_val_len = maximum(strwidth, val_strings)
 
-    if len > max_show_rows
+    # Make sure fits horizontally on one line on screen
+    max_show_width = displaysize(io)[2] - 4 # proceeding space plus 3 for seperator
+    if max_ind_len + max_val_len > max_show_width
+        (max_ind_len, max_val_len) = balance_widths(max_ind_len, max_val_len, max_show_width)
+        map!(str -> truncate_string(str, max_ind_len), ind_strings, ind_strings)
+        map!(str -> truncate_string(str, max_val_len), val_strings, val_strings)
+    end
+
+    if nrows > max_show_rows
         push!(ind_strings, (" " ^ div(max_ind_len-1, 2)) *  "⋮")
         push!(val_strings, (" " ^ div(max_val_len-1, 2)) *  "⋮")
     end
@@ -38,17 +81,13 @@ function show_series(io::IO, s::ANY)
         print(io, "\n ")
         @inbounds ind_str = ind_strings[i]
         print(io, ind_str)
-        n_spaces = max_ind_len - length(ind_str)
+        n_spaces = max_ind_len - strwidth(ind_str)
         if n_spaces > 0
             print(io, " " ^ n_spaces)
         end
         print(io, " │ ")
         @inbounds val_str = val_strings[i]
         print(io, val_str)
-        #n_spaces = length(val_strings[i]) - max_val_len
-        #if n_spaces > 0
-        #    print(io, " " ^ n_spaces)
-        #end
     end
 end
 
@@ -88,7 +127,7 @@ function show_table(io::IO, t::ANY)
         end
     end
 
-    max_column_lengths = [maximum(length, str_vec) for str_vec ∈ strings]
+    max_column_lengths = [maximum(strwidth, str_vec) for str_vec ∈ strings]
 
     if nrows > max_show_rows
         for i ∈ 1:length(strings)
@@ -106,7 +145,7 @@ function show_table(io::IO, t::ANY)
         @inbounds col_str = strings[i][1]
         print(io, col_str)
         if i != length(strings)
-            n_spaces = max_column_lengths[i] - length(col_str) + 2
+            n_spaces = max_column_lengths[i] - strwidth(col_str) + 2
             print(io, " " ^ n_spaces)
         end
     end
@@ -124,7 +163,7 @@ function show_table(io::IO, t::ANY)
         print(io, "\n ")
         @inbounds row_str = strings[1][j]
         print(io, row_str)
-        n_spaces = max_column_lengths[1] - length(row_str)
+        n_spaces = max_column_lengths[1] - strwidth(row_str)
         if n_spaces > 0
             print(io, " " ^ n_spaces)
         end
@@ -135,7 +174,7 @@ function show_table(io::IO, t::ANY)
             print(io, val_str)
 
             if i != length(strings)
-                n_spaces = max_column_lengths[i] - length(val_str) + 2
+                n_spaces = max_column_lengths[i] - strwidth(val_str) + 2
                 print(io, " " ^ n_spaces)
             end
         end
