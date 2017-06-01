@@ -24,6 +24,7 @@ end
     end
 end
 
+@inline Series(x::AbstractVector) = ArraySeries(x)
 @inline Tabular{N}(x::AbstractArray{<:Any, N}) where {N} = ArrayTabular{N}(x)
 @inline function Tabular{N}(x::AbstractArray{T, M}) where {T,N,M}
     if T <: Tabular{decrement(N,M)}
@@ -50,3 +51,5 @@ end
         DictTabular{N}(map(kv -> Pair(kv.first, Tabular{decrement(N)}(kv.second)), x))
     end
 end
+
+@inline Series(x) = StructSeries(x)

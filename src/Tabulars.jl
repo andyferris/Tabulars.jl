@@ -11,18 +11,21 @@ export Tabular, Table, Series
 export DictTabular, DictTable, DictSeries
 export ArrayTabular, ArrayTable, ArraySeries
 export TupleTabular, TupleTable, TupleSeries
+export StructSeries
 export PermutedDimsTabular, PermutedDimsTable, PermutedDimsSeries
 
 export Label, @l_str
 
 include("util.jl")
+include("Label.jl")
+
 include("Tabular.jl")
 include("DictTabular.jl")
 include("ArrayTabular.jl")
 include("TupleTabular.jl")
+include("StructTabular.jl")
 include("PermutedDimsTabular.jl")
 
-include("Label.jl")
 include("constructors.jl")
 include("generic.jl")
 
