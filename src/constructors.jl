@@ -4,6 +4,13 @@
 
 Tabular{N}(x::Tuple) where {N} = error("No method to construct a Tabular from $x")
 
+@inline function Series(x::Pair)
+    if aresingleton(_map(first, (x,)))
+        TupleSeries((x,))
+    else
+        Series(Dict(x))
+    end
+end
 @inline function Series(x::Tuple{Vararg{Pair}})
     if aresingleton(_map(first, x))
         TupleSeries(x)
@@ -12,6 +19,17 @@ Tabular{N}(x::Tuple) where {N} = error("No method to construct a Tabular from $x
     end
 end
 
+@inline function Tabular{N}(x::Pair) where {N}
+    if aresingleton(_map(first, (x,)))
+        if x.second isa Tabular{decrement(N)}
+            TupleTabular{N}((x,))
+        else
+            TupleTabular{N}((x.first => Tabular{decrement(N)}(x.second),))
+        end
+    else
+        Tabular{N}([x])
+    end
+end
 @inline function Tabular{N}(x::Tuple{Vararg{Pair}}) where {N}
     if aresingleton(_map(first, x))
         if aretype(Tabular{decrement(N)}, _map(last, x))
