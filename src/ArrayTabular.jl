@@ -50,8 +50,8 @@ end
 end
 
 # Table - scalar/non-scalar in several nested patterns
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1::Integer, i2)
-    t.array[i1][i2]
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1, i2::Integer)
+    t.array[i2][i1]
 end
 
 struct Indexer{I}
@@ -59,8 +59,8 @@ struct Indexer{I}
 end
 @propagate_inbounds (i::Indexer)(x) = x[i.inds]
 
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1::AbstractVector{<:Integer}, i2)
-    data = map(Indexer(i2), t.array[ind1]) # TODO map isn't propagate_inbounds... needs workaround
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1, i2::AbstractVector{<:Integer})
+    data = map(Indexer(i1), t.array[i2]) # TODO map isn't propagate_inbounds... needs workaround
     if eltype(data) <: Series
         return ArrayTable(data)
     else
@@ -68,8 +68,8 @@ end
     end
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, ::Colon, i2)
-    data = map(Indexer(i2), t.array)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1, ::Colon)
+    data = map(Indexer(i1), t.array)
     if eltype(data) <: Series
         return ArrayTable(data)
     else

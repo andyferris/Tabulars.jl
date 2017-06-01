@@ -3,8 +3,8 @@
 # specialize for speed
 
 function (==)(s1::Series, s2::Series)
-    i1 = collect(indices(s1))
-    i2 = collect(indices(s2))
+    i1 = collect(indices(s1)[1])
+    i2 = collect(indices(s2)[1])
 
     # They are not equal if they have different indices
     if i1 != i2
