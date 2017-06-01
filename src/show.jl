@@ -23,7 +23,8 @@ function truncate_string(str, max_width)
     # Shouldn't get here, given that strwidth(s) = reduce(charwidth, 0, s)
 end
 
-function balance_widths(width1::Int, width2::Int, max_width::Int, min_width::Int = 16)
+# Two columns, for Series
+function balance_widths(width1::Int, width2::Int, max_width::Int, min_width::Int = 20)
     @assert max_width >= 0
     biggest_width = max(width1, width2)
 
@@ -39,6 +40,44 @@ function balance_widths(width1::Int, width2::Int, max_width::Int, min_width::Int
     return (width1, width2)
 end
 
+# Multiple columns, for Table
+function balance_widths!(widths::Vector{Int}, ncols::Int, max_width::Int, buffer::Int = 2, min_width::Int = 20)
+    @assert max_width >= 0
+    biggest_width = maximum(widths)
+
+    # First pass: shorten all the column widths
+    while sum(widths) + buffer*length(widths) > max_width
+        biggest_width -= 1
+        if biggest_width < min_width
+            break
+        end
+        for i = 1:length(widths)
+            @inbounds widths[i] = min(biggest_width, widths[i])
+        end
+    end
+
+    # Second pass: truncate columns, if necessary
+    if sum(widths) + buffer*length(widths) > max_width
+        total_width = 0
+        for i = 1:length(widths)
+            width = widths[i] + buffer
+            if i == length(widths)
+                ncols_shown = i-1
+            else
+                if total_width + width + buffer + 1 > max_width # we anticipate at least a "⋯" column to follow this one
+                    ncols_shown = i-1
+                    break
+                end
+            end
+            total_width += width
+        end
+    else
+        ncols_shown = length(widths)
+    end
+
+    return ncols_shown
+end
+
 show(io::IO, ::MIME"text/plain", s::Series) = show_series(io, s)
 function show_series(io::IO, s::ANY)
     inds = collect(indices(s)[1])::Vector
@@ -51,7 +90,7 @@ function show_series(io::IO, s::ANY)
 
     print(io, nrows, "-element Series:")
 
-    max_show_rows = 5
+    max_show_rows = displaysize(io)[1] - 5
 
     if nrows <= max_show_rows
         ind_strings = map(compact_string, inds)::Vector{String}
@@ -98,18 +137,23 @@ function show_table(io::IO, t::ANY)
     col_inds = collect(inds[2])::Vector
     nrows = length(row_inds)::Int
     ncols = length(col_inds)::Int
+    display_width = displaysize(io)[2]
+    max_cols = display_width ÷ 3 # assuming one-width columns with two spaces in-between
 
     if nrows == 0 | ncols == 0
+        # Perhaps we can handle one or the other being 0?
         print(io, "$nrows×$ncols Table")
         return
     end
 
     print(io, nrows, "×", ncols, " Table:")
 
-    max_show_rows = 5
+    max_show_rows = displaysize(io)[1] - 7
 
-    strings = Vector{Vector{String}}(ncols+1)
-    for i ∈ 1:(ncols + 1)
+    ncols_shown = min(ncols+1, max_cols) # First "column" shown is the indices
+
+    strings = Vector{Vector{String}}(ncols_shown)
+    for i ∈ 1:ncols_shown
         for j ∈ 1:(min(max_show_rows, nrows) + 1)
             if j == 1
                 if i == 1
@@ -127,11 +171,32 @@ function show_table(io::IO, t::ANY)
         end
     end
 
-    max_column_lengths = [maximum(strwidth, str_vec) for str_vec ∈ strings]
+    max_column_widths = [max(1, maximum(strwidth, str_vec)) for str_vec ∈ strings]
+
+    if sum(max_column_widths) + 2*length(max_column_widths) > display_width
+        # Shorten each column and reduce the number of columns shown
+        # If they all still don't fit, the final shown column will be filled with "⋯"
+
+        ncols_shown = balance_widths!(max_column_widths, ncols, display_width)
+        strings = strings[1:ncols_shown]
+        max_column_widths = max_column_widths[1:ncols_shown]
+        for i = 1:length(strings)
+            map!(str -> truncate_string(str, max_column_widths[i]), strings[i], strings[i])
+        end
+    end
+
+    if ncols_shown < ncols+1
+        push!(strings, fill("⋯", length(strings[1])))
+        push!(max_column_widths, 1)
+    end
 
     if nrows > max_show_rows
         for i ∈ 1:length(strings)
-            push!(strings[i], (" " ^ div(max_column_lengths[i]-1, 2)) *  "⋮")
+            if i == length(strings) && strings[i][1] == "⋯"
+                push!(strings[i], (" " ^ div(max_column_widths[i]-1, 2)) *  "⋱")
+            else
+                push!(strings[i], (" " ^ div(max_column_widths[i]-1, 2)) *  "⋮")
+            end
         end
     end
 
@@ -139,31 +204,29 @@ function show_table(io::IO, t::ANY)
 
     # Header: " --  Column1  Column2"
     print(io, "\n ")
-    n_spaces = max_column_lengths[1] + 3
+    n_spaces = max_column_widths[1] + 3
     print(io, " " ^ n_spaces)
     for i ∈ 2:length(strings)
         @inbounds col_str = strings[i][1]
         print(io, col_str)
         if i != length(strings)
-            n_spaces = max_column_lengths[i] - strwidth(col_str) + 2
+            n_spaces = max_column_widths[i] - strwidth(col_str) + 2
             print(io, " " ^ n_spaces)
         end
     end
 
     # Seperator: " ┌────────"
     print(io, "\n ")
-    print(io, " " ^ max_column_lengths[1])
+    print(io, " " ^ max_column_widths[1])
     print(io, " ┌─")
-    for i = 2:length(strings)
-        print(io, "─" ^ (max_column_lengths[i] + 2))
-    end
+    print(io, "─" ^ (sum(max_column_widths) - max_column_widths[1] + 2*(length(max_column_widths) - 2)))
 
     # Body " rowind │ val1  val2"
     for j = 2:length(strings[1])
         print(io, "\n ")
         @inbounds row_str = strings[1][j]
         print(io, row_str)
-        n_spaces = max_column_lengths[1] - strwidth(row_str)
+        n_spaces = max_column_widths[1] - strwidth(row_str)
         if n_spaces > 0
             print(io, " " ^ n_spaces)
         end
@@ -174,7 +237,7 @@ function show_table(io::IO, t::ANY)
             print(io, val_str)
 
             if i != length(strings)
-                n_spaces = max_column_lengths[i] - strwidth(val_str) + 2
+                n_spaces = max_column_widths[i] - strwidth(val_str) + 2
                 print(io, " " ^ n_spaces)
             end
         end
