@@ -69,8 +69,14 @@ For clarity and simplicity we'll lay out some assumptions:
    indices can be acheived by concatenation or a "grouped" index.) These are not
    generically shaped "ragged" arrays.
  * Within each dimension each index is unique.
+ * Indices are an important part of the data and are therefore persistent - for
+   example the concatenation of the rows of two tables will contain uniquely all
+   the input row index keys, unlike `vcat(vector1, vector2)` where both vectors
+   would share index `1`, for example. (Of course, methods will be provided for
+   where the row key is semantically unimportant, since otherwise this would be
+   quite annoying!)
  * Code is focussed on `N=1` and `N=2` for the moment, but structures generally
-   allow for arbitray-dimensionality via nesting. We also won't try to extend to
+   allow for arbitrary-dimensionality via nesting. We also won't try to extend to
    the zero dimensional case (for the moment).
 
 ## Tabular types
@@ -84,10 +90,11 @@ rich set of data structures. Currently we have:
    however it does not support linear indexing (e.g. `ArrayTable` must *always*
    be indexed by two values). An `ArrayTable` may contain a flat matrix, or it
    may contain a vector of nested `Series`. Convenient constructors will
-   automatically wrap the elements in a `Series`, if necessary.
+   automatically wrap the elements in a `Series`, if necessary. E.g.
+   `Table([1 2; 3 4])` and `Table([[1,2],[3,4]])`.
  * `DictSeries` and `DictTable`: Wrappers of `Associative` containers. For a
    `DictTable`, the elements will be nested `Series`. Supports indexing with `:`
-   and vectors of keys.
+   and vectors of keys. E.g. `Table(:a => [1,2,3], :b => [4,5,6])`.
  * `TupleSeries` and `TupleTable`: Tuples of `Pair`s wrapped in a tabular
    structure. Unlike other containers, these may contain heterogenously-typed
    data and present it in a type-stable fashion. For this to work, the indices
@@ -95,9 +102,11 @@ rich set of data structures. Currently we have:
    can be constructed with `l"Name"`. For example, a strongly-typed table can be
    made via `Table(l"Name" => ["Alice", "Bob"], l"Age" => [28, 35])`.
  * `StructSeries`: Automatically deconstructs any Julia struct into a series,
-   which may be indexed via a `Label`. For example `Series(2+3im)[l"re"] === 2`.
+   which may be indexed via a `Label`. For example `s = Series(2+3im)`, where
+   `s[l"re"] == 2` and `s[l"im"] == 3`.
  * `PermutedDimsTabular`: used to create a view of a transposed table, where the
-   row and column indices are reversed.
+   row and column indices are reversed. Generally used via the transpose
+   operator `.'` (or simply  `'`), **which is non-recursive in both cases**.
 
 These can be mixed in a variety of ways, and for convenience, inner structures
 will automatically be wrapped in the appropriate type for arrays, associatives,
