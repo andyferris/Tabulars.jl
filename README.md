@@ -93,38 +93,42 @@ rich set of data structures. Currently we have:
    automatically wrap the elements in a `Series`, if necessary. E.g.
    `Table([1 2; 3 4])` and `Table([[1,2],[3,4]])`.
  * `DictSeries` and `DictTable`: Wrappers of `Associative` containers. For a
-   `DictTable`, the elements will be nested `Series`. Supports indexing with `:`
-   and vectors of keys. E.g. `Table(:a => [1,2,3], :b => [4,5,6])`.
+   `DictTable`, the elements will be nested `Series`. Unlike `Associative`,
+   these support indexing with `:` and vectors of keys. These may be constructed
+   by pairs, e.g. `Table(:a => [1,2,3], :b => [4,5,6])`.
  * `TupleSeries` and `TupleTable`: Tuples of `Pair`s wrapped in a tabular
    structure. Unlike other containers, these may contain heterogenously-typed
    data and present it in a type-stable fashion. For this to work, the indices
-   must be singleton types. The package provides the `Label` string type, which
-   can be constructed with `l"Name"`. For example, a strongly-typed table can be
-   made via `Table(l"Name" => ["Alice", "Bob"], l"Age" => [28, 35])`.
+   must be singleton types (the constructors automatically detect this). The
+   package provides the singleton `Label` string type, which can be constructed
+   with `l"Name"`. For example, a strongly-typed table can be made via
+   `Table(l"Name" => ["Alice", "Bob"], l"Age" => [28, 35])`.
  * `StructSeries`: Automatically deconstructs any Julia struct into a series,
    which may be indexed via a `Label`. For example `s = Series(2+3im)`, where
-   `s[l"re"] == 2` and `s[l"im"] == 3`.
+   `s[l"re"] == 2` and `s[l"im"] == 3`. Also `Table([1+2im, 3+4im])` will
+   deconstruct the vector into rows with real and imaginary parts as elements.
  * `PermutedDimsTabular`: used to create a view of a transposed table, where the
    row and column indices are reversed. Generally used via the transpose
-   operator `.'` (or simply  `'`), **which is non-recursive in both cases**.
+   operator `.'` or simply  `'`, **which is non-recursive in both cases**.
 
 These can be mixed in a variety of ways, and for convenience, inner structures
 will automatically be wrapped in the appropriate type for arrays, associatives,
-tuples and structs. Transposing a table stored as an array-of-structs will
+tuples and structs. All support indexing with single indices, colon `:`, or
+collections of indices. Transposing a table stored as an array-of-structs will
 effectively present a view which looks like a struct-of-arrays.
 
-Some more structures which seem desirable:
+Some more structures which seem desirable are:
 
- * Grouped indices, for supporting common group-by operations
+ * Grouped indices, for supporting common group-by operations.
  * Sub-tabulars, for views and filtering.
  * Ordered tabulars, where indexing is accelearted via sort-ordering rather than
    hashing *a la* `Dict`. Not sure if this is a new `Tabular`, or a new
    `Associative`.
- * The transpose of a series? Columns and rows (being series with a *single*
-   row/column index attached)?
+ * The transpose of a series (like `RowVector`)? Similarly, columns and rows
+   (being series with a *single* row/column index attached)?
 
 ## Operations
 
 Ideally, this package would support a variety of *primitive* operations on
 `Tabular`s, such as maps, reductions, filtering and grouping. However, the goal
-isn't to construct an entire querying front-end.
+isn't to construct an entire querying front-end. This is still a WIP.
