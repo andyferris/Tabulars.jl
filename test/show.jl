@@ -37,11 +37,11 @@
 
     @testset "show Series" begin
         io = IOBuffer()
-        show(io, MIME"text/plain"(), Series("a"=>1, "b"=>2))
+        show(io, MIME"text/plain"(), Series(l"a"=>1, l"b"=>2))
         @test String(io) == """
             2-element Series:
-             b │ 2
-             a │ 1"""
+             a │ 1
+             b │ 2"""
 
         io = IOBuffer()
         show(io, Series(zeros(100)))
@@ -77,13 +77,13 @@
 
     @testset "show Table" begin
         io = IOBuffer()
-        show(io, MIME"text/plain"(), Table("a"=>[1,2,], "b"=>[3,4]))
+        show(io, MIME"text/plain"(), Table(l"a"=>[1,2,], l"b"=>[3,4]))
         @test String(io) == """
             2×2 Table:
-                 b  a
+                 a  b
                ┌─────
-             1 │ 3  1
-             2 │ 4  2"""
+             1 │ 1  3
+             2 │ 2  4"""
 
         io = IOBuffer()
         show(io, Table(zeros(100,100)))
@@ -111,7 +111,7 @@
              ⋮  │  ⋮    ⋮    ⋮    ⋮    ⋮    ⋮    ⋮    ⋮    ⋮    ⋮    ⋮    ⋮    ⋮    ⋮   ⋱"""
 
         io = IOBuffer()
-        show(io, Table("This index is really, really long, in fact it's rather too much too long"=>["The value is shorter by far"], "Another cute string" => ["Another cute value"]))
+        show(io, Table(l"Another cute string" => ["Another cute value"], l"This index is really, really long, in fact it's rather too much too long"=>["The value is shorter by far"]))
         @test String(io) == """
             1×2 Table:
                  Another cute string  This index is really, really long, in fact it's rathe…
