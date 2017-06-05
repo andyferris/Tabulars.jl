@@ -31,23 +31,57 @@ first `n-m` elements.
     end
 end
 
-function same_indices(iter)
-    i1 = indices(first(iter))
+@inline function same_indices(iter)
+    #=i1 = indices(first(iter))
     for i ∈ iter
         if i1 != indices(i)
             return false
         end
     end
-    return true
+    return true =#
 
-    #= # Optimize
+    # Optimize
     s = start(iter)
     if done(iter, s)
         return true
     end
-    (i1, s) = next(iter, s)
-    ...
-    =#
+    (x, s) = next(iter, s)
+    i1 = indices(x)
+    while !done(iter, s)
+        (x, s) = next(iter,s)
+        if _same_indices(indices(x), i1)
+            continue
+        else
+            return false
+        end
+    end
+    return true
+end
+
+@inline _same_indices(inds1::Tuple{Any}, inds2::Tuple{Any}) = _same_index(inds1[1], inds2[1])
+@inline function _same_indices(inds1::Tuple{Any, Any}, inds2::Tuple{Any,Any})
+    _same_index(inds1[1], inds2[1]) && _same_index(inds1[2], inds2[2])
+end
+
+@inline function _same_index(ind1, ind2)
+    if ind1 === ind2
+        return true
+    end
+
+    i1 = collect(ind1)
+    i2 = collect(ind2)
+
+    # They are not equal if they have different indices
+    if i1 != i2
+        if length(i1) != length(i2)
+            for i ∈ i1
+                if i ∉ i2
+                    return false
+                end
+            end
+        end
+    end
+    return true
 end
 
 @generated function _map(f, x::Tuple)

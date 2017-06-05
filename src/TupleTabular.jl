@@ -152,3 +152,25 @@ end
     t.dict[this_ind][other_inds...] = value
 end
 =#
+
+
+# These optimizations are not safe...
+function same_indices(iter::NTuple{N, T}) where {N, T <: TupleSeries}
+    return true
+end
+
+function same_indices(iter::AbstractArray{T}) where {T <: TupleSeries}
+    if isleaftype(T)
+        return true
+    else
+        return false # should invoke more abstract method?
+    end
+end
+
+function same_indices(iter::Associative{<:Any, T}) where {T <: TupleSeries}
+    if isleaftype(T)
+        return true
+    else
+        return false # should invoke more abstract method?
+    end
+end
