@@ -11,6 +11,7 @@
         @test @inferred(s[(l"re", l"im")]) === Series(l"re" => 2, l"im" => 3)
     end
 
+    # Also covered in ArrayTabular tests...
     @testset "Tables with StructSeries as rows" begin
         @test @inferred(Table([1+2im, 3+4im])) isa ArrayTable
 

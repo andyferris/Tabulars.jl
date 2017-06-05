@@ -15,6 +15,8 @@ struct DictTabular{N, D <: Associative} <: Tabular{N}
     end
 end
 
+#TODO These don't auto-wrap inner series like the standard constructors do...
+
 @inline DictTabular{N}(d::Associative) where {N} = DictTabular{N, typeof(d)}(d)
 @inline DictTabular{N}(data::Pair...) where {N} = DictTabular{N}(Dict(data...))
 
@@ -58,7 +60,7 @@ end
 end
 
 @propagate_inbounds function getindex(t::DictSeries{<:Associative{K}}, ::Colon) where {K}
-    return DictSeries(copy(t))
+    return DictSeries(copy(t.dict))
 end
 
 @propagate_inbounds function getindex(t::DictSeries{<:Associative{K}}, inds::AbstractVector{K}) where {K}
@@ -71,7 +73,7 @@ end
 end
 
 @propagate_inbounds function getindex(t::DictTable{<:Associative{K}}, other_inds, ::Colon) where {K}
-    dict = map(kv -> Pair(kv.first, kv.second[other_inds], t.dict))
+    dict = map(kv -> Pair(kv.first, kv.second[other_inds]), t.dict)
     if valtype(dict) <: Series
         return DictTable(dict)
     else
@@ -92,8 +94,8 @@ end
 #  setindex!
 # ===========
 
-@propagate_inbounds function setindex!(s::DictSeries, v, i)
-    s.dict[v] = v
+@propagate_inbounds function setindex!(s::DictSeries{<:Associative{K}}, v, i::K) where {K}
+    s.dict[i] = v
 end
 
 @propagate_inbounds function setindex!(t::DictTable{<:Associative{K}}, v, i1, i2::K) where {K}

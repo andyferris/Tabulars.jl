@@ -38,9 +38,9 @@
         @test @inferred(indices(t4))[1] isa Base.KeyIterator # do a more specific test?
         @test @inferred(indices(t4))[2] === Base.OneTo(2)
         @test @inferred(t4[:b,1]) === 2
-        @test_broken @inferred(t4[:,1]) == Series(:a=>1, :b=>2, :c=>3)
+        @test @inferred(t4[:,1]) == Series(:a=>1, :b=>2, :c=>3)
         @test @inferred(t4[:b,:]) == Series([2,5])
-        @test_broken @inferred(t4[:,:]) == t4
+        @test @inferred(t4[:,:]) == t4
 
         # TupleTabular inner type
         @test @inferred(Table([(l"a"=>1, l"b"=>2.0, l"c"=>3f0), (l"a"=>4, l"b"=>5.0, l"c"=>6f0)])) isa ArrayTable{<:Vector}
