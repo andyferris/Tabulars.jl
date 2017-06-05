@@ -32,5 +32,23 @@
         @test @inferred(t2[:, :]) == t2
 
         @test (t2[2, :a] = 5; t2[2, :a] === 5)
+
+        # DictTable with inner TupleSeries
+        @test @inferred(Table(:a => (l"x"=>1,l"y"=>2,l"z"=>3), :b => (l"x"=>4,l"y"=>5,l"z"=>6))) isa DictTable
+        t3 = Table(:a => (l"x"=>1,l"y"=>2,l"z"=>3), :b => (l"x"=>4,l"y"=>5,l"z"=>6))
+        @test @inferred(indices(t3)) == ((l"x", l"y", l"z"), keys(t3.dict))
+        @test @inferred(t3[l"y", :a]) === 2
+        @test_broken @inferred(t3[l"y", :]) == Series(:a => 2, :b => 5) # Inference works at REPL but not in test
+        @test @inferred(t3[:, :a]) === Series(l"x" => 1, l"y" => 2, l"z" => 3)
+        @test @inferred(t3[:, :]) == t3
+
+        # DictTable with inner StructSeries
+        @test @inferred(Table(:a => 1+2im, :b => 3+4im)) isa DictTable
+        t4 = Table(:a => 1+2im, :b => 3+4im)
+        @test @inferred(indices(t4)) == ((l"re", l"im"), keys(t4.dict))
+        @test @inferred(t4[l"im", :a]) === 2
+        @test_broken @inferred(t4[l"im", :]) == Series(:a => 2, :b => 4) # Inference works at REPL but not in test
+        @test @inferred(t4[:, :a]) === Series(1+2im)
+        @test @inferred(t4[:, :]) == t4
     end
 end
