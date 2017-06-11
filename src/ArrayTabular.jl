@@ -40,13 +40,30 @@ const FlatArrayTabular{N, A <: AbstractArray{<:Any, N}} = ArrayTabular{N, A}
 #  getindex
 # ==========
 
+# TODO - maybe fancy indexing should return some kind of sort-based associative rather than a hash-based one?
+
 # Series - scalar or not
 @propagate_inbounds function getindex(t::ArraySeries{<:AbstractVector}, i::Integer)
     t.array[i]
 end
 
-@propagate_inbounds function getindex(t::ArraySeries{<:AbstractVector}, i::Union{Colon, AbstractVector{<:Integer}})
-    ArraySeries(t.array[i])
+# Unlike `AbstractVector`, fancy indexing always preserves the index keys. If these are not
+# a unit range, then we need a more general (non-array) behavior
+@propagate_inbounds function getindex(t::ArraySeries{<:AbstractVector}, inds::AbstractVector{<:Integer})
+    d = Dict{eltype(inds), eltype(t.array)}()
+    for i ∈ inds
+        d[i] = t.array[i]
+    end
+    return Series(d)
+end
+
+# Optimization for UnitRange (Base.OneTo)
+@propagate_inbounds function getindex(t::ArraySeries{<:Vector}, inds::Base.OneTo{Int})
+    return Series(t.array[inds])
+end
+
+@propagate_inbounds function getindex(t::ArraySeries{<:AbstractVector}, ::Colon)
+    Series(t.array[:])
 end
 
 # Table - scalar/non-scalar in several nested patterns
@@ -59,21 +76,23 @@ struct Indexer{I}
 end
 @propagate_inbounds (i::Indexer)(x) = x[i.inds]
 
+# Unlike `AbstractArray`, gancy indexing always preserves the index keys
 @propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1, i2::AbstractVector{<:Integer})
-    data = map(Indexer(i1), t.array[i2]) # TODO map isn't propagate_inbounds... needs workaround
-    if eltype(data) <: Series
-        return ArrayTable(data)
+    data = Dict(map((k,v) -> k => v[i1], enumerate(t.array[i2]))) # TODO optimize?
+
+    if valtype(data) <: Series
+        return Table(data)
     else
-        return ArraySeries(data)
+        return Series(data)
     end
 end
 
 @propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1, ::Colon)
-    data = map(Indexer(i1), t.array)
+    data = map(Indexer(i1), t.array) # TODO map isn't propagate_inbounds... needs workaround?
     if eltype(data) <: Series
-        return ArrayTable(data)
+        return Table(data)
     else
-        return ArraySeries(data)
+        return Series(data)
     end
 end
 
@@ -81,15 +100,17 @@ end
     t.array[i1, i2]
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Integer, i2::Union{AbstractVector{<:Integer},Colon})
+# TODO fancy indexing
+
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Integer, i2::Colon)
     ArraySeries(t.array[i1, i2])
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Union{AbstractVector{<:Integer},Colon}, i2::Integer)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Colon, i2::Integer)
     ArraySeries(t.array[i1, i2])
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Union{AbstractVector{<:Integer},Colon}, i2::Union{AbstractVector{<:Integer},Colon})
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Colon, i2::Colon)
     ArrayTable(t.array[i1, i2])
 end
 
