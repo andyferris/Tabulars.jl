@@ -2,14 +2,16 @@
     @testset "ArraySeries" begin
         @test @inferred(Series([2,3,4,5])) isa ArraySeries
 
-        t1 = Series([2,3,4,5])
+        s = Series([2,3,4,5])
 
-        @test @inferred(indices(t1)) === (Base.OneTo(4),)
-        @test @inferred(t1[3]) == 4
-        @test_throws Exception t1[1,2]
+        @test @inferred(indices(s)) === (Base.OneTo(4),)
+        @test @inferred(s[3]) == 4
+        @test_throws Exception s[1,2]
 
-        @test @inferred(t1[:])::ArraySeries == t1
-        @test @inferred(t1[:])::ArraySeries == t1
+        @test @inferred(s[:])::ArraySeries == s
+        @test @inferred(s[:])::ArraySeries == s
+
+        @test @inferred(Series((2,3,4,5))) isa ArraySeries
     end
 
     @testset "ArrayTable" begin
@@ -59,5 +61,9 @@
         @test @inferred(t6[:,1]) === Series(1+2im)
         @test @inferred(t6[l"im",:]) == Series([2, 4])
         @test @inferred(t6[:,:]) == t6
+
+        # Tuples become arrays...
+        @test @inferred(Table(([1,2,3],[4,5,6]))) isa ArrayTable{<:Vector}
+        @test @inferred(Table(((1,2,3),(4,5,6)))) isa ArrayTable{<:Vector{<:ArraySeries}}
     end
 end

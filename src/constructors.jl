@@ -1,16 +1,10 @@
-# Some convenience constructors, e.g. `Table(l"A" => [1,2], l"B" => [true, false])`
+# Convenience constructors. Users mostly need to know about the abstract constructors for
+# `Series` and `Table`, and not `ArrayTabular{N}` and so-on...
 
-@inline Tabular{N}(x...) where {N} = Tabular{N}(x)
+# Pairs go to DictTabular or TupleTabular, depending if keys are singleton or data
+@inline Series(x::Pair) = Series((x,))
+@inline Tabular{N}(x::Pair...) where {N} = Tabular{N}(x)
 
-Tabular{N}(x::Tuple) where {N} = error("No method to construct a Tabular from $x")
-
-@inline function Series(x::Pair)
-    if aresingleton(_map(first, (x,)))
-        TupleSeries((x,))
-    else
-        Series(Dict(x))
-    end
-end
 @inline function Series(x::Tuple{Vararg{Pair}})
     if aresingleton(_map(first, x))
         TupleSeries(x)
@@ -19,17 +13,6 @@ end
     end
 end
 
-@inline function Tabular{N}(x::Pair) where {N}
-    if aresingleton(_map(first, (x,)))
-        if x.second isa Tabular{decrement(N)}
-            TupleTabular{N}((x,))
-        else
-            TupleTabular{N}((x.first => Tabular{decrement(N)}(x.second),))
-        end
-    else
-        Tabular{N}([x])
-    end
-end
 @inline function Tabular{N}(x::Tuple{Vararg{Pair}}) where {N}
     if aresingleton(_map(first, x))
         if aretype(Tabular{decrement(N)}, _map(last, x))
@@ -42,6 +25,11 @@ end
     end
 end
 
+# Generic tuples go to ArrayTabular, preserving keys (not great for heterogenously-typed data)
+@inline Series(x::Tuple) = Series([x...])
+@inline Tabular{N}(x::Tuple) where {N} = Tabular{N}([x...])
+
+# Arrays go to ArrayTabular
 @inline Series(x::AbstractVector) = ArraySeries(x)
 @inline Tabular{N}(x::AbstractArray{<:Any, N}) where {N} = ArrayTabular{N}(x)
 @inline function Tabular{N}(x::AbstractArray{T, M}) where {T,N,M}
@@ -52,6 +40,7 @@ end
     end
 end
 
+# Arrays of pairs go to DictSeries
 @inline Series(x::AbstractVector{<:Pair}) = DictSeries(Dict(x))
 @inline function Tabular{N}(x::AbstractVector{<:Pair}) where {N}
     if _secondtype(eltype(x)) <: Tabular{decrement(N)}
@@ -61,6 +50,7 @@ end
     end
 end
 
+# Associatives go to DictSeries
 @inline Series(x::Associative) = DictSeries(x)
 @inline function Tabular{N}(x::Associative) where {N}
     if valtype(x) <: Tabular{decrement(N)}
