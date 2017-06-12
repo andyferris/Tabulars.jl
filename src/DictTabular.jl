@@ -82,7 +82,7 @@ end
 end
 
 @propagate_inbounds function getindex(t::DictTable{<:Associative{K}}, other_inds, this_inds::AbstractVector{K}) where {K}
-    dict = map(k -> Pair(k, t.dict[k][other_inds]), this_inds)
+    dict = Dict(map(k -> Pair(k, t.dict[k][other_inds]), this_inds))
     if valtype(dict) <: Series
         return DictTable(dict)
     else

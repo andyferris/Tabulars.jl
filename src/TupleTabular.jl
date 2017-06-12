@@ -39,7 +39,7 @@ const TupleSeries{Data <: Tuple{Vararg{Pair}}} = TupleTabular{1, Data}
     if i == d.first
         return d.second
     else
-        error("Can't find index $i") # TODO choose an exception type
+        throw(IndexError("Can't find index $i"))
     end
 end
 @inline function _get_tuple_value(i, d::Pair, ds::Pair...)
@@ -56,7 +56,7 @@ end
     if i == d.first
         return d
     else
-        error("Can't find index $i") # TODO choose an exception type
+        throw(IndexError("Can't find index $i"))
     end
 end
 @inline function _get_tuple_pair(i, d::Pair, ds::Pair...)

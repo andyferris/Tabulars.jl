@@ -16,8 +16,22 @@
         t = Table(:a => (:x=>1,:y=>2,:z=>3), :b => (:x=>4,:y=>5,:z=>6))
         @test @inferred(indices(t)) == (keys(t.dict[:a].dict), keys(t.dict))
         @test @inferred(t[:y, :a]) === 2
+        if VERSION <= v"0.6.0-rc3.0"
+            # Inference works at REPL but not in test
+            @test t[:y, [:a, :b]] == Series(:a => 2, :b => 5)
+            @test_broken @inferred(t[:y, [:a, :b]]) == Series(:a => 2, :b => 5)
+        else
+            @test @inferred(t[:y, [:a, :b]]) == Series(:a => 2, :b => 5)
+        end
         @test @inferred(t[:y, :]) == Series(:a => 2, :b => 5)
         @test @inferred(t[:, :a]) == Series(:x => 1, :y => 2, :z => 3)
+        if VERSION <= v"0.6.0-rc3.0"
+            # Inference works at REPL but not in test
+            @test t[:, [:a, :b]] == t
+            @test_broken @inferred(t[:, [:a, :b]]) == t
+        else
+            @test @inferred(t[:, [:a, :b]]) == t
+        end
         @test @inferred(t[:, :]) == t
 
         @test (t[:y, :a] = 5; t[:y, :a] === 5)
@@ -39,7 +53,9 @@
         @test @inferred(indices(t3)) == ((l"x", l"y", l"z"), keys(t3.dict))
         @test @inferred(t3[l"y", :a]) === 2
         if VERSION <= v"0.6.0-rc3.0"
-            @test_broken @inferred(t3[l"y", :]) == Series(:a => 2, :b => 5) # Inference works at REPL but not in test
+            # Inference works at REPL but not in test
+            @test t3[l"y", :] == Series(:a => 2, :b => 5)
+            @test_broken @inferred(t3[l"y", :]) == Series(:a => 2, :b => 5)
         else
             @test @inferred(t3[l"y", :]) == Series(:a => 2, :b => 5)
         end
@@ -52,7 +68,9 @@
         @test @inferred(indices(t4)) == ((l"re", l"im"), keys(t4.dict))
         @test @inferred(t4[l"im", :a]) === 2
         if VERSION <= v"0.6.0-rc3.0"
-            @test_broken @inferred(t4[l"im", :]) == Series(:a => 2, :b => 4) # Inference works at REPL but not in test
+            # Inference works at REPL but not in test
+            @test t4[l"im", :] == Series(:a => 2, :b => 4)
+            @test_broken @inferred(t4[l"im", :]) == Series(:a => 2, :b => 4)
         else
             @test @inferred(t4[l"im", :]) == Series(:a => 2, :b => 4)
         end

@@ -14,12 +14,14 @@ function (==)(s1::Series, s2::Series)
 
     # They are not equal if they have different indices
     if i1 != i2
-        if length(i1) != length(i2)
+        if length(i1) == length(i2)
             for i ∈ i1
                 if i ∉ i2
                     return false
                 end
             end
+        else
+            return false
         end
     end
 

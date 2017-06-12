@@ -1,6 +1,7 @@
 @testset "StructTabular" begin
     @testset "StructSeries" begin
         @test @inferred(Series(2+3im)) isa StructSeries
+        @test_throws ErrorException Series(1)
 
         s = Series(2+3im)
         @test @inferred(s[l"re"]) === 2

@@ -1,4 +1,8 @@
 
+struct IndexError <: Exception
+    str::String
+end
+
 """
     pop(x::Tuple)
 

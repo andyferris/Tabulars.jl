@@ -6,6 +6,7 @@ import Base: @pure, @propagate_inbounds, @_pure_meta, @_inline_meta, @_propagate
 
 import Base: ==
 
+export IndexError
 #export AbstractTabular, AbstractTable, AbstractDataSet
 export Tabular, Table, Series
 export DictTabular, DictTable, DictSeries
