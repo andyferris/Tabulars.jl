@@ -37,7 +37,11 @@
         t3 = Table(l"a" => (l"x"=>true,l"y"=>2,l"z"=>3), l"b" => (l"x"=>4.0,l"y"=>5.0f0,l"z"=>6.0))
         @test @inferred(indices(t3)) === ((l"x", l"y", l"z"), (l"a", l"b"))
         @test @inferred(t3[l"y", l"a"]) === 2
-        @test_broken @inferred(t3[l"y", :]) === Series(l"a" => 2, l"b" => 5.0f0) # Inference works at REPL but not in test
+        if VERSION <= v"0.6.0-rc3.0"
+            @test_broken @inferred(t3[l"y", :]) === Series(l"a" => 2, l"b" => 5.0f0) # Inference works at REPL but not in test
+        else
+            @test @inferred(t3[l"y", :]) === Series(l"a" => 2, l"b" => 5.0f0)
+        end
         @test @inferred(t3[:, l"a"]) === Series(l"x" => true, l"y" => 2, l"z" => 3)
         @test @inferred(t3[:, :]) === t3
 
