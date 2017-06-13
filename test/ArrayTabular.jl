@@ -21,10 +21,13 @@
         t2 = Table([1 4; 2 5; 3 6])
         @test @inferred(indices(t2)) === (Base.OneTo(3), Base.OneTo(2))
         @test @inferred(t2[2,1]) === 2
-        @test_broken @inferred(t2[2,[1,2]]) == Series([2,5])
-        @test @inferred(t2[:,1]) == Series([1,2,3])
+        @test @inferred(t2[2,[1,2]]) == Series([2,5])
         @test @inferred(t2[2,:]) == Series([2,5])
-        @test_broken @inferred(t2[:,[1,2]]) == t2
+        @test @inferred(t2[[1,2,3],1]) == Series([1,2,3])
+        @test @inferred(t2[[1,2,3],[1,2]]) == t2
+        @test @inferred(t2[[1,2,3],:]) == t2
+        @test @inferred(t2[:,1]) == Series([1,2,3])
+        @test @inferred(t2[:,[1,2]]) == t2
         @test @inferred(t2[:,:]) == t2
 
         # Nested ArrayTable
@@ -32,10 +35,10 @@
         t3 = Table([[1,2,3],[4,5,6]])
         @test @inferred(indices(t3)) === (Base.OneTo(3), Base.OneTo(2))
         @test @inferred(t3[2,1]) === 2
-        @test_broken @inferred(t3[2,[1,2]]) == Series([2,5])
+        @test @inferred(t3[2,[1,2]]) == Series([2,5])
         @test @inferred(t3[:,1]) == Series([1,2,3])
         @test @inferred(t3[2,:]) == Series([2,5])
-        @test_broken @inferred(t3[:,[1,2]]) == t3
+        @test @inferred(t3[:,[1,2]]) == t3
         @test @inferred(t3[:,:]) == t3
 
         # With other inner types

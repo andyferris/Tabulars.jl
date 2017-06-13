@@ -28,6 +28,9 @@
         @test @inferred(t[l"re", :]) == Series([1,3])
         @test @inferred(t[l"im", :]) == Series([2,4])
 
+        @test @inferred(t[(l"re", l"im"), 1]) === Series(l"re" => 1, l"im" => 2)
+        @test @inferred(t[(l"re", l"im"), :]) == t
+
         @test @inferred(t[:, :]) == t
     end
 end

@@ -48,7 +48,7 @@ const FlatArrayTabular{N, A <: AbstractArray{<:Any, N}} = ArrayTabular{N, A}
 end
 
 # Unlike `AbstractVector`, fancy indexing always preserves the index keys. If these are not
-# a unit range, then we need a more general (non-array) behavior
+# a unit range (usually starting at 1), then we need a more general (non-array) behavior
 @propagate_inbounds function getindex(t::ArraySeries{<:AbstractVector}, inds::AbstractVector{<:Integer})
     d = Dict{eltype(inds), eltype(t.array)}()
     for i ∈ inds
@@ -76,9 +76,18 @@ struct Indexer{I}
 end
 @propagate_inbounds (i::Indexer)(x) = x[i.inds]
 
-# Unlike `AbstractArray`, gancy indexing always preserves the index keys
+# Unlike `AbstractArray`, fancy indexing always preserves the index keys
 @propagate_inbounds function getindex(t::ArrayTable{<:AbstractVector}, i1, i2::AbstractVector{<:Integer})
-    data = Dict(map((k,v) -> k => v[i1], enumerate(t.array[i2]))) # TODO optimize?
+    if isempty(i2)
+        throw(IndexError("Cannot create empty index"))
+    end
+
+    @inbounds i = i2[1] # TODO support arbitrary array indices
+    a = t.array
+    @inbounds data = Dict(i => a[i][i1])
+    @inbounds for j = 2:length(i2)
+        data[i2[j]] = a[i2[j]][i1]
+    end
 
     if valtype(data) <: Series
         return Table(data)
@@ -100,17 +109,15 @@ end
     t.array[i1, i2]
 end
 
-# TODO fancy indexing
-
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Integer, i2::Colon)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Integer, i2::Union{AbstractVector{<:Integer}, Colon})
     ArraySeries(t.array[i1, i2])
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Colon, i2::Integer)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Union{AbstractVector{<:Integer}, Colon}, i2::Integer)
     ArraySeries(t.array[i1, i2])
 end
 
-@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Colon, i2::Colon)
+@propagate_inbounds function getindex(t::ArrayTable{<:AbstractMatrix}, i1::Union{AbstractVector{<:Integer}, Colon}, i2::Union{AbstractVector{<:Integer}, Colon})
     ArrayTable(t.array[i1, i2])
 end
 
