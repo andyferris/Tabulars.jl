@@ -78,8 +78,8 @@ function balance_widths!(widths::Vector{Int}, ncols::Int, max_width::Int, buffer
     return ncols_shown
 end
 
-show(io::IO, ::MIME"text/plain", s::Series) = show_series(io, s)
-show(io::IO, s::Series) = show_series(io, s)
+show(io::IO, ::MIME"text/plain", s::AbstractSeries) = show_series(io, s)
+show(io::IO, s::AbstractSeries) = show_series(io, s)
 function show_series(io::IO, s::ANY)
     inds = collect(indices(s)[1])::Vector
     nrows = length(inds)::Int
@@ -131,8 +131,8 @@ function show_series(io::IO, s::ANY)
     end
 end
 
-show(io::IO, ::MIME"text/plain", t::Table) = show_table(io, t)
-show(io::IO, t::Table) = show_table(io, t)
+show(io::IO, ::MIME"text/plain", t::AbstractTable) = show_table(io, t)
+show(io::IO, t::AbstractTable) = show_table(io, t)
 function show_table(io::IO, t::ANY)
     inds = indices(t)
     row_inds = collect(inds[1])::Vector

@@ -1,52 +1,13 @@
-@inline length(t::Tabular) = prod(size(t))
+@inline length(s::AbstractSeries) = length(indices(s)[1])
+
+# Pretty sure this one doesn't make sense:
+# @inline length(s::AbstractTable) = (inds = indices(s); length(inds[1])*length(inds[2]))
+
+@inline endof(s::AbstractSeries) = last(indices(s)[1])
+@inline endof(t::AbstractTabular, i::Int) = last(indices(t)[i]) # not type stable
+@inline endof(t::AbstractTabular, ::Type{Val{i}}) where {i} = last(indices(t)[i::Int])
 
 # Series
-start(s::Series) = start(indices(s)[1])
-next(s::Series, i) = next(indices(s)[1], i)
-done(s::Series, i) = done(indices(s)[1], i)
-
-# TODO Table
-
-# TODO arbitrary dimensions (like CartesianRange)
-
-#=
-
-struct Index{N, I <: NTuple{N, Any}}
-    i::I
-end
-
-struct Indices{N, I <: NTuple{N, Any}}
-    indices::I
-end
-
-
-
-
-struct TabularIterator{I,S,Idx}
-    indices::I
-    states::S
-    index::Idx
-end
-
-# We need to track the iteration of each index
-@inline function start(t::AbstractTabular)
-    map(start, indices(tabular))
-end
-
-@inline function next(t::AbstractTabular, it::Tuple)
-    it2 = _next((), map(Pair, indices(t), it...)
-    return (it2, it2 => t[it2...])
-end
-
-@inline _next(out, it) = (out..., next(it))
-@inline function _next(out::Tuple, it, its...)
-    if done(it.first, it.second)
-        return _next((out..., start(it.first)), its...)
-    else
-
-        return (out..., next(it), its...)
-    end
-end
-
-@inline done(t::AbstractTabular) = all(map(done, indices(t), it))
-=#
+start(s::AbstractSeries) = start(indices(s)[1])
+next(s::AbstractSeries, i) = next(indices(s)[1], i)
+done(s::AbstractSeries, i) = done(indices(s)[1], i)

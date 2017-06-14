@@ -1,8 +1,3 @@
-
-struct IndexError <: Exception
-    str::String
-end
-
 """
     pop(x::Tuple)
 
@@ -43,7 +38,7 @@ end
         end
     end
     return true =#
-
+#=
     # Optimize
     s = start(iter)
     if done(iter, s)
@@ -58,7 +53,7 @@ end
         else
             return false
         end
-    end
+    end =#
     return true
 end
 
@@ -116,3 +111,37 @@ _secondtype(::Pair{A,B}) where {A,B} = B
 @pure increment(i::Int, j::Int) = i + j
 @pure decrement(i::Int) = i - 1
 @pure decrement(i::Int, j::Int) = i - j
+
+# Get the tuple element
+@inline get_tuple_value(data::Tuple{Vararg{Pair}}, i) = _get_tuple_value(i, data...)
+@inline function _get_tuple_value(i, d::Pair)
+    if i == d.first
+        return d.second
+    else
+        throw(IndexError("Can't find index $i"))
+    end
+end
+@inline function _get_tuple_value(i, d::Pair, ds::Pair...)
+    if i == d.first
+        return d.second
+    else
+        return _get_tuple_value(i, ds...)
+    end
+end
+
+# Get the tuple pair
+@inline get_tuple_pair(data::Tuple{Vararg{Pair}}, i) = _get_tuple_pair(i, data...)
+@inline function _get_tuple_pair(i, d::Pair)
+    if i == d.first
+        return d
+    else
+        throw(IndexError("Can't find index $i"))
+    end
+end
+@inline function _get_tuple_pair(i, d::Pair, ds::Pair...)
+    if i == d.first
+        return d
+    else
+        return _get_tuple_pair(i, ds...)
+    end
+end

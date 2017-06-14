@@ -1,97 +1,75 @@
 """
-    Tabular{N}
+    AbstractTabular{N}
+    AbstractSeries === AbstractTabular{1}
+    AbstractTable === AbstractTabular{2}
 
-`Tabular{N}`s are flexible, `N`-dimensional storage containers.
+`AbstractTabular{N}`s are flexible, `N`-dimensional storage wrappers, designed to provide 
+a uniform interface for working with data in various (possibly nested) data structures.
 
 Objects of this abstract type can be seen as an extension (or combination) of both
-`AbstractArray` and `Associative`. An `Tabular{N}` object behaves as a generic
-mapping from `N` indices to it's elements, stored in a "Cartesian".
+`AbstractArray` and `Associative`. An `AbstractTabular{N}` object behaves as a generic
+mapping from `N` indices to it's elements..
 
 Unlike `AbstractArray`, no assumptions about the indices or element type is made - excepting
 that the indices for a given dimension must be unique, and amongst dimensions they are
-"Cartesian" (e.g. a 2D tabular object must be rectangular in shape, not a generally nested
+"Cartesian" (e.g. a 2D tabular object must be rectangular in shape, not a generic nested
 or ragged array).
 
-The `Tabular{N}` interface requires the following functions:
+The `AbstractTabular{N}` interface requires the following functions (WIP):
 
  - `indices(tabular)` returns a length-`N` tuple of the indices for each dimension.
  - `getindex(tabular, inds...)` fetches an element given the `N` indices.
  - `setindex!(tabular, value, inds...)` sets an element to `value` given the `N` indices.
 """
-abstract type Tabular{N}; end
+abstract type AbstractTabular{N}; end
+
+const AbstractTable = AbstractTabular{2}
+const AbstractSeries = AbstractTabular{1}
+
+ndims(t::AbstractTabular{N}) where {N} = N
+ndims(t::Type{<:AbstractTabular{N}}) where {N} = N
+
+@inline size(t::AbstractTabular) = map(length, indices(t))
+@inline size(t::AbstractTabular, i) = length(indices(t)[i])
+
+function summary(t::AbstractSeries)
+    string("s Tabular{$N}")
+end
+
+function summary(t::AbstractTable)
+    string(join(size(t), "×"), " Table")
+end
+
+function summary(t::AbstractTabular{N}) where {N}
+    string(join(size(t), "×"), " Tabular{$N}")
+end
+
+
+"""
+    Series(data...)
+    Table(data...)
+    Tabular{N}(data...)
+    
+Wraps input `data` in a `Tabular` of the specified dimensionality.
+Indexing behavior will depend on the data type, and assumes a nested
+data access pattern. The immediate data container `data` is indexed by
+the final index value, such that (like `Base.Array`) the data "closest"
+in memory is represented by the first index, and "furthest" in memory
+by the final index. By default, multidimensional arrays will preserve
+their index order.
+
+If you wish the indices applied in a different order, see `PermutedDimsTabular`
+or consider using `transpose(table)` / `table'`.
+"""
+struct Tabular{N, D} <: AbstractTabular{N}
+    data::D
+end
 
 const Table = Tabular{2}
 const Series = Tabular{1}
 
-ndims(t::Tabular{N}) where {N} = N
-ndims(t::Type{Tabular{N}}) where {N} = N
+@inline Tabular{N}(x::D) where {N,D} = Tabular{N,D}(x)
+@inline Tabular{N}(x...) where {N} = Tabular{N}(x)
+@inline Tabular{N}(x::Pair) where {N} = Tabular{N}((x,))
 
-@inline size(t::Tabular) = map(length, indices(t))
-
-function summary(t::Tabular)
-    string(join(size(t), "×"), " ", typeof(t).name.name)
-end
-
-"""
-    TabularIndex
-
-An abstract type that represents a collection of indices of a tabular object.
-Each subtype of `Tabular` may define a corresponding `TabularIndex`, which will
-be used internally to construct new tabular objects during indexing and other
-operations.
-"""
-abstract type TabularIndex; end
-
-#=
-
-"""
-    Tabular{N}(index, data)
-    Tabular{N}(i1 => data1, i2 => data2, ...)
-
-Constructs a `N`-dimensional `Tabular` object of nested `N-1`-dimensional data elements and
-their associated indices.
-
-See `AbstractTabular`, `Table` and `DataSet`.
-"""
-struct Tabular{N, Index, Data} <: AbstractTabular{N}
-    index::Index
-    data::Data
-end
-
-Tabular{N}(index, data) where {N} = Tabular{N, typeof(index), typeof(data)}(index, data)
-Tabular{N}(pairs::Pair...) where {N} = Tabular{N}(map(first, pairs), map(last, pairs))
-
-# Aliases for common sizes
-const Table{Columns, Data} = Tabular{2, Columns, Data}
-const Series{Index, Data} = Tabular{1, Index, Data}
-
-# indices
-@inline indices(t::Tabular{0}) = ()
-@inline indices(t::Tabular{1}) = (t.index,)
-@inline indices(t::Tabular) = (indices(t.data)..., t.index)
-
-# getindex
-@inline getindex(t::Tabular{0}) = t.data[] # data should always be a collection...
-
-@propagate_inbounds function getindex(t::Tabular{1}, i)
-    t.data[findindex(t.index, i)]
-end
-
-@propagate_inbounds function getindex(t::Tabular{N}, inds::Vararg{Any, N}) where {N}
-    (other_inds, this_ind) = pop(inds)
-    t.data[findindex(t.index, this_ind)][other_inds...]
-end
-
-# setindex!
-@inline setindex!(t::Tabular{0}, value) = t.data[] = value
-
-@propagate_inbounds function setindex!(t::Tabular{1}, value, i)
-    t.data[findindex(t.index, i)] = value
-end
-
-@propagate_inbounds function setindex!(t::Tabular{N}, value, inds::Vararg{Any, N}) where {N}
-    (other_inds, this_ind) = pop(inds)
-    t.data[findindex(t.index, this_ind)][other_inds...] = value
-end
-
-=#
+get(t::Tabular) = t.data
