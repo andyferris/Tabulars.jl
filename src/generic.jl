@@ -2,7 +2,7 @@
 # be robust fallbacks, with reference implementation behavior that other types can
 # specialize for speed
 
-function (==)(s1::Series, s2::Series)
+function (==)(s1::AbstractSeries, s2::AbstractSeries)
     inds1 = indices(s1)[1]
     inds2 = indices(s2)[1]
     if inds1 === inds2
@@ -35,7 +35,7 @@ function (==)(s1::Series, s2::Series)
     return true
 end
 
-function (==)(t1::Table, t2::Table)
+function (==)(t1::AbstractTable, t2::AbstractTable)
     inds_1 = indices(t1)
     inds_2 = indices(t2)
 

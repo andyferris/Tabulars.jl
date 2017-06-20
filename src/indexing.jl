@@ -248,6 +248,15 @@ end
     end
 end
 
+@propagate_inbounds function setindex!(t::Tabular{N}, val, i::Vararg{Any, N}) where N
+    if index_shape(t, i...) isa Tuple{Vararg{ScalarIndex}}
+        _setindex!(Dims(N), t.data, val, i...)
+    else
+        error("Non-scalar setindex! has not yet been implemented.")
+    end
+    return val
+end
+
 # Series
 
 # associatives
@@ -259,6 +268,10 @@ end
 end
 @propagate_inbounds function _getindex(::Dims{1}, d::Associative, ::Colon)
     return copy(d)
+end
+
+@propagate_inbounds function _setindex!(::Dims{1}, dict::Associative{K}, val, i::K) where {K}
+    dict[i] = val
 end
 
 # vectors
@@ -277,6 +290,10 @@ end
 end
 @propagate_inbounds function _getindex(::Dims{1}, v::AbstractVector, ::Colon)
     v[:]
+end
+
+@propagate_inbounds function _setindex!(::Dims{1}, v::AbstractVector, val, i::Integer)
+    v[i] = val
 end
 
 # tuples of pairs
@@ -314,6 +331,10 @@ end
 end
 _getfield(x, ::Label{L}) where {L} = getfield(x, L)
 
+@inline function _setindex!(::Dims{1}, x, val, ::Label{L}) where L
+    setfield!(x, val, L)
+end
+
 # Table
 
 # associatives
@@ -339,6 +360,10 @@ end
     map(kv -> kv.first => _getindex(Dims(1), kv.second, i1), dict)
 end
 
+@propagate_inbounds function _setindex!(::Dims{2}, dict::Associative{K}, val, i1, i2::K) where {K}
+    _setindex!(Dims(1), dict[i2], val, i1)
+end
+
 # vectors
 @propagate_inbounds function _getindex(::Dims{2}, v::AbstractVector, i1, i2::Integer)
     _getindex(Dims(1), v[i2], i1)
@@ -353,6 +378,10 @@ end
 end
 @propagate_inbounds function _getindex(::Dims{2}, v::AbstractVector, i1, ::Colon)
     map(x -> _getindex(Dims(1), x, i1), v)
+end
+
+@propagate_inbounds function _setindex!(::Dims{2}, v::AbstractVector, val, i1, i2::Integer)
+    _setindex!(Dims(1), v[i2], val, i1)
 end
 
 # matrices
@@ -390,6 +419,10 @@ end
     m[i1, i2]
 end
 
+@propagate_inbounds function _setindex!(::Dims{2}, m::AbstractMatrix, val, i1::Integer, i2::Integer)
+    m[i1, i2] = val
+end
+
 # tuples of pairs
 @propagate_inbounds function _getindex(::Dims{2}, t::Tuple{Vararg{Pair}}, other_inds, i)
     _getindex(Dims(1), get_tuple_value(t, i), other_inds)
@@ -413,6 +446,10 @@ end
     _map(kv -> Pair(kv.first, _getindex(Dims(1), kv.second, other_inds)), t)
 end
 
+@propagate_inbounds function _setindex!(::Dims{2}, t::Tuple{Vararg{Pair}}, val, other_inds, i)
+    _setindex!(Dims(1), get_tuple_value(t, i), val, other_inds)
+end
+
 # everything else - structs
 @inline function _getindex(::Dims{2}, x, i1, ::Label{L}) where L
     _getindex(Dims(1), getfield(x, L), i1)
@@ -425,6 +462,9 @@ end
     _getindex(Dims(2), x, i1, field_indices(typeof(x)))
 end
 
+@inline function _setindex!(::Dims{2}, x, val, i1, ::Label{L}) where L
+    _setindex!(Dims(1), getfield(x, L), val, i1)
+end
 
 
 # """

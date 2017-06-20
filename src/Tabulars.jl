@@ -10,11 +10,8 @@ import Base: ==
 export IndexError
 export AbstractTabular, AbstractTable, AbstractSeries
 export Tabular, Table, Series
-export DictTabular, DictTable, DictSeries
-export ArrayTabular, ArrayTable, ArraySeries
-export TupleTabular, TupleTable, TupleSeries
-export StructSeries
 export PermutedDimsTabular, PermutedDimsTable, PermutedDimsSeries
+export SubTabular, SubTable, SubSeries
 
 export Label, @l_str
 
@@ -24,6 +21,7 @@ include("Label.jl")
 include("Tabular.jl")
 include("indexing.jl")
 include("PermutedDimsTabular.jl")
+include("SubTabular.jl")
 include("iteration.jl")
 include("generic.jl")
 include("show.jl")
@@ -38,11 +36,10 @@ end # module
 # TODO LIST
 #
 # Basic indexing interface:
+# * scalar setindex!
 # * slice/fancy setindex!
 # * setindex! works when inner type is immutable
 # * setindex for immutable types, and related trait?
-# * views
-# * toindices() (to support views, more generic indexing and setindex!)
 #
 # New containers
 # * StructTable

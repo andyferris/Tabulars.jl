@@ -7,7 +7,7 @@
         @test @inferred(s[[:a, :b]]) == s
         @test @inferred(s[:]) == s
 
-        @test_broken (s[:a] = 5; s[:a] === 5)
+        @test (s[:a] = 5; s[:a] === 5)
     end
 
     @testset "DictTable" begin
@@ -42,7 +42,8 @@
         #else
             @test @inferred(t[:, :]) == t
         #end
-        @test_broken (t[:y, :a] = 5; t[:y, :a] === 5)
+        
+        @test (t[:y, :a] = 5; t[:y, :a] === 5)
 
         # DictTable with inner ArraySeries
         @test @inferred(Table(Dict(:a => [1,2,3], :b => [4,5,6]))) isa Table
@@ -66,7 +67,8 @@
         #else
             @test @inferred(t2[:, :]) == t2
         #end
-        @test_broken (t2[2, :a] = 5; t2[2, :a] === 5)
+
+        @test (t2[2, :a] = 5; t2[2, :a] === 5)
 
         # DictTable with inner TupleSeries
         @test @inferred(Table(Dict(:a => (l"x"=>1,l"y"=>2,l"z"=>3), :b => (l"x"=>4,l"y"=>5,l"z"=>6)))) isa Table

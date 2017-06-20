@@ -83,10 +83,24 @@ end
     return true
 end
 
-@generated function _map(f, x::Tuple)
-    exprs = [:(f(x[$i])) for i = 1:length(x.parameters)]
+@generated function _map(f, x::NTuple{N,Any}) where {N}
+    exprs = [:(f(x[$i])) for i = 1:N]
     return quote
         @_inline_meta
+        tuple($(exprs...))
+    end
+end
+@generated function _map(f, x::NTuple{N,Any}, y::NTuple{N,Any}) where {N}
+    exprs = [:(f(x[$i], y[$i])) for i = 1:N]
+    return quote
+        @_inline_meta
+        tuple($(exprs...))
+    end
+end
+@generated function _map(f, x::NTuple{N,Any}, y::NTuple{N,Any}, z::NTuple{N,Any}) where {N}
+    exprs = [:(f(x[$i], y[$i], z[$i])) for i = 1:N]
+    return quote
+        @_propagate_inbounds_meta
         tuple($(exprs...))
     end
 end
