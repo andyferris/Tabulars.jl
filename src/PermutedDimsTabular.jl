@@ -59,7 +59,7 @@ transpose(t::TransposedTable) = Table(get(t))
     end
 end
 
-indices(t::PermutedDimsTabular{Perm}) where {Perm} = _permute(Val{Perm}, indices(t.data))
+indices(t::PermutedDimsTabular{Perm}) where {Perm} = _permute(Val{Perm}, _indices(Dims(length(Perm)), t.data))
 
 @propagate_inbounds function getindex(t::PermutedDimsTabular{(1,), 1}, i)
     dims = Dims(index_shape(t, i))

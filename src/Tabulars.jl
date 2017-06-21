@@ -1,7 +1,7 @@
 module Tabulars
 
 import Base: @pure, @propagate_inbounds, @_pure_meta, @_inline_meta, 
-    @_propagate_inbounds_meta, get, getindex, setindex!, view, indices, size, length, tail, 
+    @_propagate_inbounds_meta, get, getindex, setindex!, view, indices, size, length, 
     summary, show, length, start, next, done, transpose, permutedims, ndims, show, print,
     endof
 
@@ -12,6 +12,7 @@ export AbstractTabular, AbstractTable, AbstractSeries
 export Tabular, Table, Series
 export PermutedDimsTabular, PermutedDimsTable, PermutedDimsSeries
 export SubTabular, SubTable, SubSeries
+export tabulate
 
 export Label, @l_str
 
@@ -25,6 +26,7 @@ include("SubTabular.jl")
 include("iteration.jl")
 include("generic.jl")
 include("show.jl")
+include("tabulate.jl")
 
 end # module
 
@@ -36,13 +38,11 @@ end # module
 # TODO LIST
 #
 # Basic indexing interface:
-# * scalar setindex!
 # * slice/fancy setindex!
 # * setindex! works when inner type is immutable
 # * setindex for immutable types, and related trait?
 #
 # New containers
-# * StructTable
 # * sort-based Associative or Tabular (instead of hash-based Dict everywhere)
 # * TupleTabular (move current TupleTabular -> TypedTabular)
 # * GroupedTabular - nested indexing (non-Cartesian)
