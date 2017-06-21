@@ -82,7 +82,7 @@ end
 end
 
 @propagate_inbounds function getindex(t::TransposedTable, i1, i2)
-    dims = Dims(index_shape(t, i2, i1))
+    dims = Dims(index_shape(t, i1, i2))
     data = _getindex(Dims(2), get(t), i2, i1)
     if dims == 0
         return data

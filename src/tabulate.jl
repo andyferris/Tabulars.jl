@@ -21,6 +21,43 @@ function tabulate(df::DataFrame)
     return Table(data)
 end
 
+function tabulate(v::Vector{T}) where T
+    Table(make_faster(make_faster.(v)))
+end
+
+function tabulate(d::Dict{String, <:Any})
+    data = ()
+    for n ∈ keys(d)
+        data = (data..., Label{Symbol(n)}() => make_faster(d[n]))
+    end
+    return Table(data)
+end
+
+
+function tabulate(d::Dict{Symbol, Any})
+    data = ()
+    for n ∈ keys(d)
+        data = (data..., Label{n}() => make_faster(d[n]))
+    end
+    return Table(data)
+end
+
+function make_faster(d::Dict{String, Any})
+    data = ()
+    for n ∈ keys(d)
+        data = (data..., Label{Symbol(n)}() => d[n])
+    end
+    return data
+end
+
+function make_faster(d::Dict{Symbol, Any})
+    data = ()
+    for n ∈ keys(d)
+        data = (data..., Label{n}() => d[n])
+    end
+    return data
+end
+
 function make_faster(vec::DataVector{T}) where {T}
     has_nulls = false
     for x ∈ vec
@@ -42,5 +79,21 @@ function make_faster(vec::DataVector{T}) where {T}
         out = Vector{T}(length(vec))
         out[:] = vec[:]
     end
+    return out
+end
+
+function make_faster(vec::Vector{T}) where {T}
+    if isleaftype(T)
+        return vec
+    end
+
+    T2 = Union{}
+    for x ∈ vec
+        T2 = promote_type(T2, typeof(x))
+    end
+    
+    out = Vector{T2}(length(vec))
+    out[:] = vec[:]
+    
     return out
 end
