@@ -21,11 +21,11 @@ function tabulate(df::DataFrame)
     return Table(data)
 end
 
-function tabulate(v::Vector{T}) where T
+function tabulate(v::AbstractVector{T}) where T
     Table(make_faster(make_faster.(v)))
 end
 
-function tabulate(d::Dict{String, <:Any})
+function tabulate(d::Associative{String, <:Any})
     data = ()
     for n ∈ keys(d)
         data = (data..., Label{Symbol(n)}() => make_faster(d[n]))
@@ -33,8 +33,7 @@ function tabulate(d::Dict{String, <:Any})
     return Table(data)
 end
 
-
-function tabulate(d::Dict{Symbol, Any})
+function tabulate(d::Associative{Symbol, <:Any})
     data = ()
     for n ∈ keys(d)
         data = (data..., Label{n}() => make_faster(d[n]))
@@ -42,7 +41,7 @@ function tabulate(d::Dict{Symbol, Any})
     return Table(data)
 end
 
-function make_faster(d::Dict{String, Any})
+function make_faster(d::Associative{String, Any})
     data = ()
     for n ∈ keys(d)
         data = (data..., Label{Symbol(n)}() => d[n])
@@ -50,7 +49,7 @@ function make_faster(d::Dict{String, Any})
     return data
 end
 
-function make_faster(d::Dict{Symbol, Any})
+function make_faster(d::Associative{Symbol, Any})
     data = ()
     for n ∈ keys(d)
         data = (data..., Label{n}() => d[n])
@@ -82,7 +81,7 @@ function make_faster(vec::DataVector{T}) where {T}
     return out
 end
 
-function make_faster(vec::Vector{T}) where {T}
+function make_faster(vec::AbstractVector{T}) where {T}
     if isleaftype(T)
         return vec
     end
@@ -92,7 +91,7 @@ function make_faster(vec::Vector{T}) where {T}
         T2 = promote_type(T2, typeof(x))
     end
     
-    out = Vector{T2}(length(vec))
+    out = similar(vec, T2)
     out[:] = vec[:]
     
     return out
