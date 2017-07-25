@@ -47,6 +47,7 @@ end # module
 # * TupleTabular (move current TupleTabular -> TypedTabular)
 # * GroupedTabular - nested indexing (non-Cartesian)
 # * SparseTabular - list of indices => values, with default value?
+# * Support Generator
 # 
 # Features / methods
 # * rows(table), cols(table)

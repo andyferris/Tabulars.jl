@@ -467,6 +467,11 @@ end
 end
 
 
+# Tables are collections of rows:
+@propagate_inbounds getindex(t::AbstractTable, i) = t[i, :]
+@propagate_inbounds setindex!(t::AbstractTable, v, i) = (t[i, :] = v)
+
+
 # """
 #     Mutability(tabular)
 #     Mutability(typeof(tabular))

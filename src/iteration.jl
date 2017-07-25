@@ -1,13 +1,27 @@
-@inline length(s::AbstractSeries) = length(indices(s)[1])
-
-# Pretty sure this one doesn't make sense:
-# @inline length(s::AbstractTable) = (inds = indices(s); length(inds[1])*length(inds[2]))
-
-@inline endof(s::AbstractSeries) = last(indices(s)[1])
-@inline endof(t::AbstractTabular, i::Int) = last(indices(t)[i]) # not type stable
-@inline endof(t::AbstractTabular, ::Type{Val{i}}) where {i} = last(indices(t)[i::Int])
+# Iteration occurs as a nested container
 
 # Series
-start(s::AbstractSeries) = start(indices(s)[1])
-next(s::AbstractSeries, i) = next(indices(s)[1], i)
-done(s::AbstractSeries, i) = done(indices(s)[1], i)
+@inline start(s::AbstractSeries) = start(indices(s)[1])
+@inline function next(s::AbstractSeries, i) 
+    (ind, i) = next(indices(s)[1], i)
+    @inbounds return (s[ind], i)
+end
+@inline done(s::AbstractSeries, i) = done(indices(s)[1], i)
+
+@inline length(s::AbstractSeries) = length(indices(s)[1])
+@inline endof(s::AbstractSeries) = last(indices(s)[1])
+
+# Tables iterate rows as series
+@inline start(t::AbstractTable) = start(indices(t)[1])
+@inline function next(t::AbstractTable, i)
+    (ind, i) = next(indices(t)[1], i)
+    @inbounds return (t[ind, :], i)
+end
+@inline done(t::AbstractTable, i) = done(indices(t)[1], i)
+
+@inline endof(t::AbstractTable) = last(indices(t)[1]) # not type stable
+@inline endof(t::AbstractTable, i::Int) = last(indices(t)[i]) # not type stable
+@inline endof(t::AbstractTable, ::Type{Val{i}}) where {i} = last(indices(t)[i::Int])
+
+@inline length(t::AbstractTable) = length(indices(t)[1])
+
